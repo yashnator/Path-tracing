@@ -98,8 +98,12 @@ public:
     bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
 };
 
-// class Plane: public Shape {
-// };
+class Plane: public Shape {
+public: 
+    glm::vec3 point, normal;
+    Plane(glm::vec3 pt, glm::vec3 n): point(pt), normal(n) { };
+    bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
+};
 
 // class Box: public Shape {
 // };

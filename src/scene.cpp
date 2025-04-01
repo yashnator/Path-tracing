@@ -88,3 +88,19 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec) const
     }
     else return false;
 }
+
+bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec) const 
+{
+    float dnr = glm::dot(normal, ray.d);
+    if(dnr == 0) 
+        return false;
+    float nr = glm::dot(normal, point - ray.o);
+    float t = nr / dnr;
+    if(t < 0 or (not t_range.contains(t))) 
+        return false;
+    rec.t = t;
+    rec.p = ray.at(t);
+    rec.n = glm::normalize(normal);
+    t_range.max = t;
+    return true;
+}

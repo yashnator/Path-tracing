@@ -11,13 +11,18 @@ int main() {
     scene.camera = new Camera();
 
     //Add spheres
-    Sphere* s1 = new Sphere(glm::vec3(0, 0, -2), 1); 
-    Object* o1 = new Object(s1, nullptr);
+    // Sphere* s1 = new Sphere(glm::vec3(0, 0, -2), 1); 
+    // Object* o1 = new Object(s1, nullptr);
 
-    Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100); 
-    Object* o2 = new Object(s2, nullptr);
-    scene.objects.push_back(o2);
-    scene.objects.push_back(o1);
+    // Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100); 
+    // Object* o2 = new Object(s2, nullptr);
+    // scene.objects.push_back(o2);
+    // scene.objects.push_back(o1);
+
+    Plane* p1 = new Plane(glm::vec3(0, 0, -2), glm::vec3(1, 1, -1));
+    Plane* p2 = new Plane(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1));
+    scene.objects.emplace_back(new Object(p1, nullptr));
+    scene.objects.emplace_back(new Object(p2, nullptr));
 
     for (int j = 0; j < h; j++) {
         for (int i = 0; i < w; i++) {
