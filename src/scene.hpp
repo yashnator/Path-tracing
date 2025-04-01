@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 using color = glm::vec3;
 
@@ -23,6 +24,7 @@ public:
     Camera *camera;
     std::vector<Object*> objects;
     std::vector<PointLight> lights;
+    color getColor(Ray ray) const;
 };
 
 class Ray {
@@ -63,6 +65,7 @@ public:
     float t;
     glm::vec3 p, n;
     Material *mat;
+    HitRecord();
 };
 
 class Object {
@@ -74,6 +77,9 @@ public:
         mat(mat) {
     }
     bool hit(Ray ray, Interval t_range, HitRecord &rec) const;
+    ~Object() {
+        delete shape;delete mat;
+    }
 };
 
 class Shape {
@@ -89,7 +95,7 @@ public:
         c(center),
         r(radius) {
     }
-    virtual bool hit(Ray ray, Interval t_range, HitRecord &rec) const;
+    bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
 };
 
 // class Plane: public Shape {
