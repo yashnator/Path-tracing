@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
+#include <iostream>
 
 using color = glm::vec3;
 
@@ -38,6 +39,10 @@ public:
 
 class Camera {
 public:
+    float fov;
+    float width, height;
+    Camera();
+    Camera(float fov, float width, float height);
     Ray make_ray(float x, float y) const; // screen coordinates in [-1, 1]
 };
 
