@@ -135,12 +135,23 @@ color Scene::getColor(Ray ray) const
 bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
 {
     Ray transformed_ray = Ray(glm::vec3(inverse * glm::vec4(ray.o, 1.0f)), glm::vec3(inverse * glm::vec4(ray.d, 0.0f)));
+    // transformed_ray.debugRay();
     if(shape->hit(transformed_ray, t_range, rec))
     {
+        // std::cout<<"hit received"<<std::endl;
+        rec.p = glm::vec3(transform * glm::vec4(rec.p, 1.0f));
         rec.n = glm::vec3(normalTransform * glm::vec4(rec.n, 0.0f));
+        // std::cout<<glm::to_string(rec.n)<<std::endl;
         rec.mat=mat;return true;
     }
     else return false;
+}
+
+void Object::debugTransform()
+{
+    std::cout<<"Transform: "<<glm::to_string(transform)<<std::endl;
+    std::cout<<"Normal Transform: "<<glm::to_string(normalTransform)<<std::endl;
+    std::cout<<"Inverse: "<<glm::to_string(inverse)<<std::endl;
 }
 
 

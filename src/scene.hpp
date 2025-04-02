@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -40,6 +41,9 @@ public:
     }
     glm::vec3 at(float t) const {
         return o + t*d;
+    }
+    void debugRay() {
+        std::cout << "Ray: " << glm::to_string(o) << " " << glm::to_string(d) << std::endl;
     }
 };
 
@@ -94,6 +98,7 @@ public:
         normalTransform = glm::inverseTranspose(M);
         inverse = glm::inverse(M);
     }
+    void debugTransform();
     ~Object() {
         delete shape;delete mat;
     }

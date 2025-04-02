@@ -29,6 +29,10 @@ int main() {
     // Add spheres
     Sphere* s1 = new Sphere(glm::vec3(0, 0, -2.0), 0.25f);
     Object* o1 = new Object(s1, mat1);
+    //Add some basic transform
+    glm::mat4 spTransform = glm::mat4(1.0f);
+    spTransform = glm::scale(spTransform, glm::vec3(2.0f, 1.0, 1.0));
+    o1->setTransform(spTransform);
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
     Object* o2 = new Object(s2, mat1);
@@ -52,7 +56,7 @@ int main() {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, glm::vec3(0, 5.0f, -2.0f));
     transform = glm::rotate(transform,glm::radians(-90.0f),glm::vec3(1.0f,0.0f,0.0f));
-    scene.camera->transformCamera(transform);
+    // scene.camera->transformCamera(transform);
 
 
     for (int j = 0; j < h; j++) {
