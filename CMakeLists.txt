@@ -14,4 +14,6 @@ target_link_libraries(ray_tracer glm::glm)
 add_compile_options(-O3 -Wall)
 
 add_executable(example executables/example.cpp)
+add_executable(p3 executables/p3.cpp)
 target_link_libraries(example ray_tracer SDL2::SDL2 SDL2_image::SDL2_image)
+target_link_libraries(p3 ray_tracer SDL2::SDL2 SDL2_image::SDL2_image)

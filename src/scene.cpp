@@ -1,5 +1,45 @@
 #include "scene.hpp"
 
+//Scene functions
+bool Scene::inShadow(glm::vec3 p, PointLight light) const
+{
+    Ray shadow_ray(p, light.location-p);
+    HitRecord rec;
+    Interval t_range = Interval(0.0f, std::numeric_limits<float>::max());
+    float bias = 0.001f, max_hit = 0.0f;
+    for(auto const &obj:objects)
+    {
+        if(obj->hit(shadow_ray, t_range, rec)) max_hit = std::max(max_hit, rec.t);
+    }
+    return (max_hit > bias) ? true : false;
+}
+
+glm::vec3 Scene::irradiance(HitRecord &rec, PointLight light) const
+{
+    float r_square = glm::dot(light.location - rec.p, light.location - rec.p);
+    glm::vec3 l = light.location-rec.p;
+    float cos_theta = glm::dot(rec.n, glm::normalize(l));
+
+    if(cos_theta < 0) return glm::vec3(0.0);
+    return (light.intensity * cos_theta) / r_square;
+}
+
+color Scene::radiance(HitRecord &rec) const
+{
+    color totalRadiance = glm::vec3(0.0);
+    for(auto const &light:lights)
+    {
+        if(!inShadow(rec.p, light))
+        {
+            glm::vec3 v = camera->getLocation()-rec.p;
+            glm::vec3 l = light.location-rec.p;
+            color brdf = rec.mat->brdf(rec, l, v);
+            totalRadiance += irradiance(rec, light) * brdf;
+        }
+    }
+    return totalRadiance;
+}
+
 //Camera functions
 Camera::Camera(float fov, float width, float height) : fov(fov), width(width), height(height){};
 //Default constructor
@@ -20,6 +60,11 @@ Ray Camera::make_ray(float x, float y) const {
     // return Ray(glm::vec3(0,0,0), glm::vec3(x, y, -1));
 }
 
+glm::vec3 Camera::getLocation()
+{
+    return glm::vec3(0, 0, 0);
+}
+
 //Scene functions
 color Scene::getColor(Ray ray) const
 {
@@ -31,21 +76,26 @@ color Scene::getColor(Ray ray) const
     {
         if(obj->hit(ray, t_range, rec)) 
         {
-            c = (float)0.5 * (rec.n + glm::vec3(1));
+            if(!obj->mat) {c = (float)0.5 * (rec.n + glm::vec3(1));}
+            else
+            {
+                c = radiance(rec);
+            }
             no_of_hits++;
             t_range.max=std::min(t_range.max, rec.t);
-            // std::cout<<rec.t<<" ";
         }
-        // if(no_of_hits>1) std::cout<<"some error ";
     }
-    // if(no_of_hits)std::cout<<std::endl;
     return c;
 }
 
 //Object functions
 bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
 {
-    return shape->hit(ray, t_range, rec);
+    if(shape->hit(ray, t_range, rec))
+    {
+        rec.mat=mat;return true;
+    }
+    else return false;
 }
 
 
@@ -120,7 +170,7 @@ bool Box::hit(Ray ray, Interval t_range, HitRecord &rec) const
     float tmax = std::min(tmaxx, std::min(tmaxy, tmaxz));
     if(tmax > 0 and tmin <= tmax) {
         rec.t = tmin;
-    std::cout << "Found a collision at " << tmin << " " << tmax << std::endl;
+    // std::cout << "Found a collision at " << tmin << " " << tmax << std::endl;
         rec.p = ray.at(tmin);
         rec.n = glm::vec3(0.0);
         if(tmin == tminx) {
@@ -134,4 +184,11 @@ bool Box::hit(Ray ray, Interval t_range, HitRecord &rec) const
         return true;
     }
     return false;
+}
+
+
+//Material functions
+color Lambertian::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
+{
+    return (albedo/glm::pi<float>());
 }

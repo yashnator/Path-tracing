@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/constants.hpp>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -25,6 +26,9 @@ public:
     std::vector<Object*> objects;
     std::vector<PointLight> lights;
     color getColor(Ray ray) const;
+    bool inShadow(glm::vec3 p, PointLight light) const;
+    glm::vec3 irradiance(HitRecord &rec, PointLight light) const;
+    color radiance(HitRecord &rec) const;
 };
 
 class Ray {
@@ -46,6 +50,7 @@ public:
     Camera();
     Camera(float fov, float width, float height);
     Ray make_ray(float x, float y) const; // screen coordinates in [-1, 1]
+    glm::vec3 getLocation();
 };
 
 class Interval {
@@ -125,9 +130,12 @@ public:
 class Lambertian: public Material {
 public:
     color albedo;
+    Lambertian(color albedo):
+        albedo(albedo) {
+    }
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
     virtual bool reflection(const HitRecord &rec, glm::vec3 v,
-                            glm::vec3 &r, color &kr) {
+                            glm::vec3 &r, color &kr) const {
         return false;
     }
 };
@@ -142,6 +150,7 @@ class PointLight {
 public:
     glm::vec3 location;
     color intensity;
+    PointLight(glm::vec3 location, color intensity): location(location),intensity(intensity) {}
 };
 
 #endif
