@@ -19,7 +19,7 @@ int main() {
     p2.intensity*=100;
     // scene.lights.push_back(p2);
 
-    PointLight p3 = PointLight(glm::vec3(0.0,10.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
+    PointLight p3 = PointLight(glm::vec3(0.0,3.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
     p3.intensity*=1000;
     scene.lights.push_back(p3);
 
@@ -27,7 +27,7 @@ int main() {
     Material* mat1 = new Lambertian(glm::vec3(1.0f, 1.0f, 1.0f));
 
     // Add spheres
-    Sphere* s1 = new Sphere(glm::vec3(0, 0, -2.0), 0.25);
+    Sphere* s1 = new Sphere(glm::vec3(0, 0, -2.0), 0.25f);
     Object* o1 = new Object(s1, mat1);
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
@@ -48,6 +48,11 @@ int main() {
     // scene.objects.emplace_back(new Object(s1, nullptr));
     // Plane* p1 = new Plane(glm::vec3(0, -1, 0), glm::vec3(0, -1, 0));
     // scene.objects.emplace_back(new Object(p1, nullptr));
+
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, glm::vec3(0, 5.0f, -2.0f));
+    transform = glm::rotate(transform,glm::radians(-90.0f),glm::vec3(1.0f,0.0f,0.0f));
+    scene.camera->transformCamera(transform);
 
 
     for (int j = 0; j < h; j++) {

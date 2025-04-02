@@ -47,10 +47,13 @@ class Camera {
 public:
     float fov;
     float width, height;
+    glm::vec3 center, view, up, right;
     Camera();
     Camera(float fov, float width, float height);
     Ray make_ray(float x, float y) const; // screen coordinates in [-1, 1]
     glm::vec3 getLocation();
+    void transformCamera(glm::mat4 transform);
+    void debugCamera();
 };
 
 class Interval {
@@ -77,6 +80,7 @@ class Object {
 public:
     Shape *shape;
     Material *mat;
+    glm::mat4 transform;
     Object(Shape *shape, Material *mat, glm::mat4 M=glm::mat4(1.0)):
         shape(shape),
         mat(mat) {
