@@ -80,12 +80,20 @@ class Object {
 public:
     Shape *shape;
     Material *mat;
-    glm::mat4 transform;
+    glm::mat4 transform, normalTransform, inverse;
     Object(Shape *shape, Material *mat, glm::mat4 M=glm::mat4(1.0)):
         shape(shape),
         mat(mat) {
+            transform = glm::mat4(1.0);
+            normalTransform = glm::mat4(1.0);
+            inverse = glm::mat4(1.0);
     }
     bool hit(Ray ray, Interval t_range, HitRecord &rec) const;
+    void setTransform(glm::mat4 M) {
+        transform = M;
+        normalTransform = glm::inverseTranspose(M);
+        inverse = glm::inverse(M);
+    }
     ~Object() {
         delete shape;delete mat;
     }

@@ -78,7 +78,7 @@ Ray Camera::make_ray(float x, float y) const {
 
     glm::vec3 ray_dir = glm::vec3(0.0f);
 
-    ray_dir += right * x * aspect_ratio * scale;
+    ray_dir += right * x * aspect_ratio * scale;    
     ray_dir += up * y * scale;
     ray_dir += view;
 
@@ -134,8 +134,10 @@ color Scene::getColor(Ray ray) const
 //Object functions
 bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
 {
-    if(shape->hit(ray, t_range, rec))
+    Ray transformed_ray = Ray(glm::vec3(inverse * glm::vec4(ray.o, 1.0f)), glm::vec3(inverse * glm::vec4(ray.d, 0.0f)));
+    if(shape->hit(transformed_ray, t_range, rec))
     {
+        rec.n = glm::vec3(normalTransform * glm::vec4(rec.n, 0.0f));
         rec.mat=mat;return true;
     }
     else return false;
