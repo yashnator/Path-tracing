@@ -105,8 +105,12 @@ public:
     bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
 };
 
-// class Box: public Shape {
-// };
+class Box: public Shape {
+public:
+    glm::vec3 low, hi;
+    Box(glm::vec3 minpt, glm::vec3 maxpt): low(minpt), hi(maxpt) { };
+    bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
+};
 
 class Material {
 public:

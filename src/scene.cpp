@@ -104,3 +104,34 @@ bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec) const
     t_range.max = t;
     return true;
 }
+
+bool Box::hit(Ray ray, Interval t_range, HitRecord &rec) const 
+{
+    float tminx = ray.d.x != 0 ? ((low.x - ray.o.x) / ray.d.x) : std::numeric_limits<float>::min();
+    float tmaxx = ray.d.x != 0 ? ((hi.x - ray.o.x) / ray.d.x) : std::numeric_limits<float>::max();
+    float tminy = ray.d.y != 0 ? ((low.y - ray.o.y) / ray.d.y) : std::numeric_limits<float>::min();
+    float tmaxy = ray.d.y != 0 ? ((hi.y - ray.o.y) / ray.d.y) : std::numeric_limits<float>::max();
+    float tminz = ray.d.z != 0 ? ((low.z - ray.o.z) / ray.d.z) : std::numeric_limits<float>::min();
+    float tmaxz = ray.d.z != 0 ? ((hi.z - ray.o.z) / ray.d.z) : std::numeric_limits<float>::max();
+    // if(tminx > tmaxx) std::swap(tminx, tmaxx);
+    // if(tminy > tmaxy) std::swap(tminy, tmaxy);
+    // if(tminz > tmaxz) std::swap(tminz, tmaxz);
+    float tmin = std::max(tminx, std::max(tminy, tminz));
+    float tmax = std::min(tmaxx, std::min(tmaxy, tmaxz));
+    if(tmax > 0 and tmin <= tmax) {
+        rec.t = tmin;
+    std::cout << "Found a collision at " << tmin << " " << tmax << std::endl;
+        rec.p = ray.at(tmin);
+        rec.n = glm::vec3(0.0);
+        if(tmin == tminx) {
+            rec.n.x = tmin >= 0 ? 1 : -1;
+        } else if(tmin == tminy) {
+            rec.n.y = tmin >= 0 ? 1 : -1;
+        } else {
+            rec.n.z = tmin >= 0 ? 1 : -1;
+        }
+        t_range.max = tmin;
+        return true;
+    }
+    return false;
+}
