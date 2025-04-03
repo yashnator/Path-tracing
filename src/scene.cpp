@@ -37,7 +37,7 @@ color Scene::radiance(HitRecord &rec) const
             totalRadiance += irradiance(rec, light) * brdf;
         }
     }
-    return totalRadiance;
+    return totalRadiance + ambientLight*rec.mat->ambientColor;
 }
 
 //Camera functions
@@ -90,7 +90,7 @@ Ray Camera::make_ray(float x, float y) const {
     // std::cout<<abs(x)<<" "<<abs(y)<<std::endl;
     // if(std::abs(x)<0.01f && std::abs(y)<0.01f) std::cout<<x<<" "<<y<<" ("<<ray_dir.x<<","<<ray_dir.y<<","<<ray_dir.z<<")"<<std::endl;
 
-    return Ray(center, glm::normalize(ray_dir));
+    return Ray(center, normalize(ray_dir));
     // return Ray(glm::vec3(0,0,0), glm::vec3(x, y, -1));
 }
 
@@ -128,13 +128,16 @@ color Scene::getColor(Ray ray) const
             t_range.max=std::min(t_range.max, rec.t);
         }
     }
+    if(!no_of_hits) c = sky;
     return c;
 }
 
 //Object functions
 bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
 {
-    Ray transformed_ray = Ray(glm::vec3(inverse * glm::vec4(ray.o, 1.0f)), glm::vec3(inverse * glm::vec4(ray.d, 0.0f)));
+    glm::vec3 new_direction = glm::vec3(inverse * glm::vec4(ray.d, 0.0f));
+    new_direction = glm::normalize(new_direction);
+    Ray transformed_ray = Ray(glm::vec3(inverse * glm::vec4(ray.o, 1.0f)), new_direction);
     // transformed_ray.debugRay();
     if(shape->hit(transformed_ray, t_range, rec))
     {

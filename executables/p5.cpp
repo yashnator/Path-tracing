@@ -35,9 +35,10 @@ int main() {
     Object* o1 = new Object(s1, mat1);
     //Add some basic transform
     glm::mat4 spTransform = glm::mat4(1.0f);
-    spTransform = glm::scale(spTransform, glm::vec3(3.0f, 3.0f, 1.0f));
-    spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -5.0f));
-    // o1->setTransform(spTransform);
+    // spTransform = glm::translate(spTransform, glm::vec3(-1.0f, 0.0f, 0.0f));
+    spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.0f, 1.0f));
+    o1->setTransform(spTransform);
+    // o1->debugTransform();
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
     Object* o2 = new Object(s2, mat2);
@@ -77,7 +78,7 @@ int main() {
     }
     SDL_Surface *out = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
     tonemap(image, out, 1, 2.2f);
-    IMG_SavePNG(out, "part_3.png");
+    IMG_SavePNG(out, "part_5.png");
 
     //Memory cleanup
     // for(auto obj: scene.objects) delete obj;

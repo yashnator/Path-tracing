@@ -26,6 +26,8 @@ public:
     Camera *camera;
     std::vector<Object*> objects;
     std::vector<PointLight> lights;
+    color sky = glm::vec3(0.0f);
+    color ambientLight = glm::vec3(0.0f);
     color getColor(Ray ray) const;
     bool inShadow(glm::vec3 p, PointLight light) const;
     glm::vec3 irradiance(HitRecord &rec, PointLight light) const;
@@ -136,6 +138,8 @@ public:
 
 class Material {
 public:
+    color ambientColor=glm::vec3(0.0f);
+    color kr;
     virtual color emission(const HitRecord &rec, glm::vec3 v) const {
         return glm::vec3(0.0);
     }
@@ -157,8 +161,8 @@ public:
     }
 };
 
-// class Metallic: public Material {
-// };
+class Metallic: public Material {
+};
 
 // class Emissive: public Material {
 // };
