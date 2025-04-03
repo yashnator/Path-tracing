@@ -52,7 +52,7 @@ int main() {
     Object* o2 = new Object(s2, mat2);
 
     Sphere* s3 = new Sphere(glm::vec3(0.0f, 0, -2.0), 0.35f);
-    Object* o3 = new Object(s3, mat3);
+    Object* o3 = new Object(s3, mat1);
 
     scene.objects.push_back(o2);
     scene.objects.push_back(o1);
@@ -77,7 +77,7 @@ int main() {
     }
     SDL_Surface *out = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
     tonemap(image, out, 1, 2.2f);
-    IMG_SavePNG(out, "part_5.png");
+    IMG_SavePNG(out, "path_trace.png");
 
     //Memory cleanup
     // for(auto obj: scene.objects) delete obj;

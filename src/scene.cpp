@@ -37,7 +37,7 @@ color Scene::radiance(HitRecord &rec) const
             totalRadiance += irradiance(rec, light) * brdf;
         }
     }
-    return totalRadiance + ambientLight*rec.mat->ambientColor;
+    return (totalRadiance + ambientLight*rec.mat->ambientColor);
 }
 
 //Camera functions
@@ -81,15 +81,6 @@ Ray Camera::make_ray(float x, float y) const {
     ray_dir += right * x * aspect_ratio * scale;    
     ray_dir += up * y * scale;
     ray_dir += view;
-
-    // glm::vec3 ray_dir(
-    //     x * aspect_ratio * scale,  // Adjust x for aspect ratio
-    //     y * scale,                 // Adjust y for FOV scaling
-    //     -1                         // Always points into the scene (negative z-direction)
-    // );
-    // std::cout<<abs(x)<<" "<<abs(y)<<std::endl;
-    // if(std::abs(x)<0.01f && std::abs(y)<0.01f) std::cout<<x<<" "<<y<<" ("<<ray_dir.x<<","<<ray_dir.y<<","<<ray_dir.z<<")"<<std::endl;
-
     return Ray(center, normalize(ray_dir));
     // return Ray(glm::vec3(0,0,0), glm::vec3(x, y, -1));
 }
@@ -109,8 +100,11 @@ void Camera::debugCamera()
 }
 
 //Scene functions
-color Scene::getColor(Ray ray) const
+color Scene::getColor(Ray ray, int depth) const
 {
+    //exceeded the recursion depth
+    if(depth<0) return glm::vec3(0.0f);
+
     HitRecord rec = HitRecord();
     Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
     color c = glm::vec3(0);
@@ -129,6 +123,24 @@ color Scene::getColor(Ray ray) const
         }
     }
     if(!no_of_hits) c = sky;
+    else
+    {
+        //some object was hit, we now need to find if something was reflected from this object
+        //Get the reflection coefficient and the reflected direction
+        glm::vec3 kr = glm::vec3(0.0f), r = glm::vec3(0.0f), reflectedColor = glm::vec3(0.0f);
+        if(rec.mat->reflection(rec,camera->getLocation()-rec.p, r, kr))
+        {
+            //calculate the reflected color. bias?
+            Ray reflectedRay = Ray(rec.p, r);
+            reflectedColor = getColor(reflectedRay, depth-1);
+            // std::cout<<"reflection happened"<<std::endl;
+        }
+
+        //Calculate the final radiance
+        glm::vec3 inherent = glm::vec3(1.0f)-kr;
+        glm::vec3 reflected = kr;
+        c = inherent * c + reflected * reflectedColor;
+    }
     return c;
 }
 
@@ -143,7 +155,7 @@ bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
     {
         // std::cout<<"hit received"<<std::endl;
         rec.p = glm::vec3(transform * glm::vec4(rec.p, 1.0f));
-        rec.n = glm::vec3(normalTransform * glm::vec4(rec.n, 0.0f));
+        rec.n = glm::normalize(glm::vec3(normalTransform * glm::vec4(rec.n, 0.0f)));
         // std::cout<<glm::to_string(rec.n)<<std::endl;
         rec.mat=mat;return true;
     }
@@ -160,7 +172,6 @@ void Object::debugTransform()
 
 //HitRecord functions
 HitRecord::HitRecord(): t(std::numeric_limits<float>::max()), p(glm::vec3(0)), n(glm::vec3(0)), mat(nullptr) {};
-
 
 //Hit functions
 bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec) const
@@ -251,3 +262,26 @@ color Lambertian::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 {
     return (albedo/glm::pi<float>());
 }
+
+color Metallic::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
+{
+    glm::vec3 bisector = glm::normalize(glm::normalize(l) + glm::normalize(v));
+    float cos_theta = glm::dot(rec.n, bisector);
+    if(cos_theta < 0) return glm::vec3(0.0f);
+    cos_theta = std::pow(cos_theta, shininess);
+    return (albedo * cos_theta) / glm::pi<float>();
+}
+
+bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
+{
+    float cos_theta = glm::dot(rec.n, v);
+    if(cos_theta < 0) return false;
+
+    glm::vec3 d = glm::normalize(-1.0f * v);
+    r = glm::normalize(d - 2.0f * glm::dot(rec.n, d) * rec.n);
+
+    //Apply the schlick's approximation
+    kr = parallelReflection;
+    kr += (glm::vec3(1.0f) - parallelReflection) * glm::pow(1.0f - cos_theta, 5.0f);
+    return true;
+} 

@@ -28,7 +28,7 @@ public:
     std::vector<PointLight> lights;
     color sky = glm::vec3(0.0f);
     color ambientLight = glm::vec3(0.0f);
-    color getColor(Ray ray) const;
+    color getColor(Ray ray, int depth = 1) const;
     bool inShadow(glm::vec3 p, PointLight light) const;
     glm::vec3 irradiance(HitRecord &rec, PointLight light) const;
     color radiance(HitRecord &rec) const;
@@ -139,7 +139,6 @@ public:
 class Material {
 public:
     color ambientColor=glm::vec3(0.0f);
-    color kr;
     virtual color emission(const HitRecord &rec, glm::vec3 v) const {
         return glm::vec3(0.0);
     }
@@ -162,6 +161,15 @@ public:
 };
 
 class Metallic: public Material {
+public:
+    color parallelReflection; //This is the F_0 value for schlick's approximation
+    int shininess = 1;
+    color albedo; //specular reflection coefficient
+    Metallic(color parallelReflection, int blinnPhongExponent, color albedo):
+        parallelReflection(parallelReflection), shininess(blinnPhongExponent), albedo(albedo) {
+    }
+    virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
+    virtual bool reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const;
 };
 
 // class Emissive: public Material {
