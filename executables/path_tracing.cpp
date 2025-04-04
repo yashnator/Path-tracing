@@ -11,13 +11,13 @@ int main() {
     scene.camera = new Camera();
 
     //Make light sources
-    Material* lsrc = new Emissive(glm::vec3(500.0f,500.0f,500.0f));
+    Material* lsrc = new Emissive(glm::vec3(1.0f,1.0f,1.0f));
     // Sphere* ls1 = new Sphere
 
     //Make materials
-    PointLight p3 = PointLight(glm::vec3(-01.0,0.8,-1.0),glm::vec3(1.0f,1.0f,1.0f));
-    p3.intensity*=5;
-    // scene.lights.push_back(p3);
+    PointLight p3 = PointLight(glm::vec3(1.0,0.8,-1.0),glm::vec3(1.0f,1.0f,1.0f));
+    p3.intensity*=10;
+    scene.lights.push_back(p3);
 
     //Lambertian materials
     Material* mat1 = new Lambertian(glm::vec3(1.0f, 1.0f, 1.0f));

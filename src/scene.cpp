@@ -40,6 +40,28 @@ color Scene::radiance(HitRecord &rec) const
     return totalRadiance;
 }
 
+color Scene::radianceFromEmissive(HitRecord &rec) const
+{
+    color totalRadiance = glm::vec3(0.0);
+    if(rec.mat->emission(rec, camera->getLocation()-rec.p) != glm::vec3(0.0f))
+    {
+        return totalRadiance;
+    }
+    for(auto const &obj:objects)
+    {
+        if(obj->mat && obj->mat->emission(rec, camera->getLocation()-rec.p) != glm::vec3(0.0f))
+        {
+            //The object must be a sphere
+            // std::cout<<"source cum"<<std::endl;
+            Sphere *sp = dynamic_cast<Sphere*>(obj->shape);
+            if(!sp) std::cout<<"cooked"<<std::endl;
+            glm::vec3 ct = glm::normalize(sp->c-rec.p);
+            std::pair<HitRecord,int> hit = traceRay(Ray(rec.p,glm::normalize(sp->c-rec.p)));
+            if(hit.second) totalRadiance += hit.first.mat->emission(rec, sp->c-rec.p) * rec.mat->brdf(rec,sp->c - rec.p, camera->getLocation()-rec.p);
+        }
+    }
+    return totalRadiance;
+}
 color Scene::computeColor(Ray ray, int numberOfBounces) const
 {
     std::pair<HitRecord,int> hit = traceRay(ray);
@@ -80,7 +102,11 @@ color Scene::tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const
     {
         c += computeColor(ray, numberOfBounces);
     }
-    return c/(float)numberOfSamples;
+    color direct_light = glm::vec3(0.0f);
+    std::pair<HitRecord,int> hit = traceRay(ray);
+    if(hit.second) direct_light+= radiance(hit.first);
+    if(hit.second) direct_light+= radianceFromEmissive(hit.first);
+    return c/(float)numberOfSamples + direct_light;
 }
 
 //Camera functions
@@ -142,10 +168,6 @@ color Scene::getColor(Ray ray, int depth) const
         glm::vec3 reflected = kr;
         // std::cout<<to_string(reflectedColor)<<std::endl;
         c = inherent * c + reflected * reflectedColor;
-        // if(reflected.x>0.0f && reflected.y>0.0f && reflected.z>0.0f)
-        // {
-        //     std::cout<<"final color "<<to_string(c)<<std::endl;
-        // }
     }
     return c;
 }

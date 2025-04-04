@@ -43,6 +43,7 @@ public:
     bool inShadow(glm::vec3 p, PointLight light) const;
     glm::vec3 irradiance(HitRecord &rec, PointLight light) const;
     color radiance(HitRecord &rec) const;
+    color radianceFromEmissive(HitRecord &rec) const;
     std::pair<HitRecord,int> traceRay(Ray ray) const;
 };
 
