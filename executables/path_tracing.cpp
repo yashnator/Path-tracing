@@ -11,17 +11,7 @@ int main() {
     scene.camera = new Camera();
 
     //Make light sources
-    PointLight p1 = PointLight(glm::vec3(10.0,0.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
-    p1.intensity*=100;
-    // scene.lights.push_back(p1);
-
-    PointLight p2 = PointLight(glm::vec3(-10.0,0.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
-    p2.intensity*=100;
-    // scene.lights.push_back(p2);
-
-    PointLight p3 = PointLight(glm::vec3(-1.0,3.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
-    p3.intensity*=50;
-    scene.lights.push_back(p3);
+    
 
     //Make materials
 

@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <random>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -21,6 +22,9 @@ class Material;
 class PointLight;
 class Camera;
 
+bool probability(float p);
+glm::vec3 sampleCosineHemisphere(const glm::vec3& normal);
+
 class Scene {
 public:
     Camera *camera;
@@ -29,6 +33,8 @@ public:
     color sky = glm::vec3(0.0f);
     color ambientLight = glm::vec3(0.0f);
     color getColor(Ray ray, int depth = 1) const;
+    color tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const;
+    color computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const;
     bool inShadow(glm::vec3 p, PointLight light) const;
     glm::vec3 irradiance(HitRecord &rec, PointLight light) const;
     color radiance(HitRecord &rec) const;
@@ -172,8 +178,20 @@ public:
     virtual bool reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const;
 };
 
-// class Emissive: public Material {
-// };
+class Emissive: public Material {
+public:
+    color emittedRadiance=glm::vec3(0.0f);
+    Emissive(color emittedRadiance):
+        emittedRadiance(emittedRadiance) {
+    }
+    virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const {
+        return glm::vec3(0.0f);
+    }
+    virtual bool reflection(const HitRecord &rec, glm::vec3 v,
+                            glm::vec3 &r, color &kr) const {
+        return false;
+    }
+};
 
 class PointLight {
 public:

@@ -55,7 +55,7 @@ int main() {
     }
     SDL_Surface *out = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
     tonemap(image, out, 1, 2.2f);
-    IMG_SavePNG(out, "part_3.png");
+    IMG_SavePNG(out, "out.png");
 
     //Memory cleanup
     // for(auto obj: scene.objects) delete obj;

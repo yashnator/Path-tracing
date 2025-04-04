@@ -19,7 +19,7 @@ int main() {
     p2.intensity*=100;
     // scene.lights.push_back(p2);
 
-    PointLight p3 = PointLight(glm::vec3(-1.0,3.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
+    PointLight p3 = PointLight(glm::vec3(0.0,3.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
     p3.intensity*=50;
     scene.lights.push_back(p3);
 
@@ -35,28 +35,28 @@ int main() {
     //Metallic materials
     color albedo = glm::vec3(1.0f, 1.0f, 1.0f);
     color parallelReflection = glm::vec3(0.5f, 0.5f, 0.5f); //The F0 value
-    int expo = 1;
+    int expo = 200;
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
     
     // Add spheres
-    Sphere* s1 = new Sphere(glm::vec3(-1.0f, 0, -2.0), 0.35f);
+    Sphere* s1 = new Sphere(glm::vec3(0.0f, 0, -3.0), 0.35f);
     Object* o1 = new Object(s1, mat3);
     //Add some basic transform
     glm::mat4 spTransform = glm::mat4(1.0f);
-    spTransform = glm::translate(spTransform, glm::vec3(-1.0f, 0.0f, 0.0f));
-    // spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.0f, 1.0f));
+    // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -1.0f));
+    // spTransform = glm::scale(spTransform, glm::vec3(1.5f, 2.0f, 1.0f));
     // o1->setTransform(spTransform);
     // o1->debugTransform();
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
     Object* o2 = new Object(s2, mat2);
 
-    Sphere* s3 = new Sphere(glm::vec3(0.0f, 0, -2.0), 0.35f);
+    Sphere* s3 = new Sphere(glm::vec3(1.0f, 0, -2.0), 0.35f);
     Object* o3 = new Object(s3, mat3);
 
     scene.objects.push_back(o2);
     scene.objects.push_back(o1);
-    scene.objects.push_back(o3);
+    // scene.objects.push_back(o3);
 
     scene.sky = glm::vec3(0.69,0.77,0.87);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
@@ -71,6 +71,7 @@ int main() {
             // trace the ray and get the colour
             // color c = glm::normalize(ray.d)*0.5f + 0.5f;;
             color c = scene.getColor(ray);
+            // std::cout<<x<<" "<<y<<" "<<to_string(c)<<std::endl;
             image.pixel(i, j) = c;
 
         }
@@ -78,6 +79,9 @@ int main() {
     SDL_Surface *out = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
     tonemap(image, out, 1, 2.2f);
     IMG_SavePNG(out, "part_5.png");
+
+    Ray test = Ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    std::cout<<to_string(scene.getColor(test))<<std::endl;
 
     //Memory cleanup
     // for(auto obj: scene.objects) delete obj;

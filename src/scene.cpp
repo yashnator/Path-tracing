@@ -1,5 +1,14 @@
 #include "scene.hpp"
 
+//Probability
+bool probability(float p) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd()); // Mersenne Twister RNG
+    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    return dist(gen) < p;
+}
+
 //Scene functions
 bool Scene::inShadow(glm::vec3 p, PointLight light) const
 {
@@ -38,6 +47,65 @@ color Scene::radiance(HitRecord &rec) const
         }
     }
     return (totalRadiance + ambientLight*rec.mat->ambientColor);
+}
+
+color Scene::computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const
+{
+    float prob = 1.0 - 1.0/(float)numberOfBounces;
+    glm::vec3 v = camera->getLocation() - rec.p;
+    color emittedRadiance = glm::vec3(0.0f), otherSources = glm::vec3(0.0f);
+    float cos_theta = glm::dot(glm::normalize(v), rec.n);
+    if(rec.mat) emittedRadiance += rec.mat->emission(rec,v); //The direct emitted radiance from the object
+    
+    //Sample a direction from importance sampling
+    glm::vec3 sampledNormal;
+    float pdf;
+    
+    if(probability(prob) && cos_theta>0)
+    {
+        //Trace the ray
+        Ray sampledRay=Ray(rec.p, sampledNormal); HitRecord sampledHit = HitRecord();
+        Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
+        int no_of_hits=0;
+        for(auto const &obj:objects)
+        {
+            if(obj->hit(sampledRay,t_range,sampledHit)) 
+            {
+                no_of_hits++;
+                t_range.max=std::min(t_range.max,rec.t);
+            }
+        }
+        glm::vec3 l = glm::normalize(sampledHit.p - rec.p);
+        if(no_of_hits==0) otherSources = sky;
+        else
+        {
+            //Recurse and solve
+            otherSources = (computeColor(sampledHit, -1.0f*l, numberOfBounces)*cos_theta*rec.mat->brdf(rec, l, v))/pdf;
+        }
+    }
+    return emittedRadiance + otherSources/prob;
+}
+
+color Scene::tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const
+{
+    HitRecord rec = HitRecord();
+    Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
+    color res = glm::vec3(0);
+    int no_of_hits = 0;
+    for(auto const &obj:objects)
+    {
+        if(obj->hit(ray, t_range, rec)) 
+        {
+            no_of_hits++;
+            t_range.max=std::min(t_range.max, rec.t);
+        }
+    }
+    if(!no_of_hits) return sky;
+    for(int i=0;i<numberOfSamples;i++)
+    {
+        res+=computeColor(rec, ray.d, numberOfBounces);
+    }
+    return (float)(1.0/(float)numberOfSamples)*res;
 }
 
 //Camera functions
@@ -116,7 +184,7 @@ color Scene::getColor(Ray ray, int depth) const
             if(!obj->mat) {c = (float)0.5 * (rec.n + glm::vec3(1));}
             else
             {
-                c = radiance(rec);
+                c = radiance(rec)+rec.mat->emission(rec,ray.d); // if hit is at a light source, adjust
             }
             no_of_hits++;
             t_range.max=std::min(t_range.max, rec.t);
@@ -128,11 +196,16 @@ color Scene::getColor(Ray ray, int depth) const
         //some object was hit, we now need to find if something was reflected from this object
         //Get the reflection coefficient and the reflected direction
         glm::vec3 kr = glm::vec3(0.0f), r = glm::vec3(0.0f), reflectedColor = glm::vec3(0.0f);
-        if(rec.mat->reflection(rec,camera->getLocation()-rec.p, r, kr))
+        if(rec.mat->reflection(rec,ray.o-rec.p, r, kr))
         {
-            //calculate the reflected color. bias?
-            Ray reflectedRay = Ray(rec.p, r);
+            //calculate the reflected color. bias added
+            Ray reflectedRay = Ray(rec.p + 0.001f*rec.n, r);
             reflectedColor = getColor(reflectedRay, depth-1);
+            if(reflectedColor.x < 0 || reflectedColor.y < 0 || reflectedColor.z < 0)
+            {
+                std::cout<<"Reflected color is negative"<<std::endl;
+                // reflectedColor = glm::vec3(0.0f);
+            }
             // std::cout<<"reflection happened"<<std::endl;
         }
 
@@ -275,7 +348,7 @@ color Metallic::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
 {
     float cos_theta = glm::dot(rec.n, v);
-    if(cos_theta < 0) return false;
+    if(cos_theta < 0) {return false;}
 
     glm::vec3 d = glm::normalize(-1.0f * v);
     r = glm::normalize(d - 2.0f * glm::dot(rec.n, d) * rec.n);
@@ -285,3 +358,29 @@ bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color
     kr += (glm::vec3(1.0f) - parallelReflection) * glm::pow(1.0f - cos_theta, 5.0f);
     return true;
 } 
+//Sampling functions
+glm::vec3 sampleCosineHemisphere(const glm::vec3& normal) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    float u1 = dist(gen);
+    float u2 = dist(gen);
+
+    // Compute angles for cosine-weighted sampling
+    float theta = acos(sqrt(u1));
+    float phi = 2.0f * glm::pi<float>() * u2;
+
+    // Convert to Cartesian coordinates (local space)
+    float x = cos(phi) * sin(theta);
+    float y = sin(phi) * sin(theta);
+    float z = cos(theta);
+
+    // Convert to world space using an orthonormal basis
+    glm::vec3 up = (fabs(normal.z) < 0.999f) ? glm::vec3(0, 0, 1) : glm::vec3(1, 0, 0);
+    glm::vec3 tangent = glm::normalize(glm::cross(up, normal));
+    glm::vec3 bitangent = glm::cross(normal, tangent);
+
+    // Transform local sample to world space
+    return glm::normalize(tangent * x + bitangent * y + normal * z);
+}
