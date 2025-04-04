@@ -6,13 +6,15 @@ bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
     new_direction = glm::normalize(new_direction);
     Ray transformed_ray = Ray(glm::vec3(inverse * glm::vec4(ray.o, 1.0f)), new_direction);
     // transformed_ray.debugRay();
-    if(shape->hit(transformed_ray, t_range, rec))
+    if(shape->hit(transformed_ray, t_range, rec, transform, inverse, normalTransform))
     {
         // std::cout<<"hit received"<<std::endl;
+        // std::cout<<"at: "<<glm::to_string(rec.p)<<std::endl;
         rec.p = glm::vec3(transform * glm::vec4(rec.p, 1.0f));
         rec.n = glm::normalize(glm::vec3(normalTransform * glm::vec4(rec.n, 0.0f)));
         // std::cout<<glm::to_string(rec.n)<<std::endl;
-        rec.mat=mat;return true;
+        rec.mat=mat;
+        return true;
     }
     else return false;
 }
@@ -29,11 +31,13 @@ void Object::debugTransform()
 HitRecord::HitRecord(): t(std::numeric_limits<float>::max()), p(glm::vec3(0)), n(glm::vec3(0)), mat(nullptr) {};
 
 //Hit functions
-bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec) const
+bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const
 {
+    // std::cout<<to_string(ray.o)<<" "<<to_string(ray.d)<<std::endl;
+    glm::vec3 object_space_c = glm::vec3(itf * glm::vec4(this->c, 1.0f));
     float qa = glm::dot(ray.d, ray.d);
-    float qb = glm::dot(2.0f * ray.d, ray.o - c);
-    float qc = glm::dot(ray.o - c, ray.o - c) - r * r;
+    float qb = glm::dot(2.0f * ray.d, ray.o - object_space_c);
+    float qc = glm::dot(ray.o - object_space_c, ray.o - object_space_c) - r * r;
 
     float discriminant = qb * qb - 4 * qa * qc;
     if (discriminant < 0)
@@ -47,7 +51,7 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec) const
     {
         rec.t = t1;
         rec.p = ray.at(t1);
-        rec.n = glm::normalize(rec.p - c);
+        rec.n = glm::normalize(rec.p - object_space_c);
         // rec.mat = mat;
         t_range.max = t1; // Update the t_range to reflect the hit
         return true;
@@ -56,7 +60,7 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec) const
     {
         rec.t = t2;
         rec.p = ray.at(t2);
-        rec.n = glm::normalize(rec.p - c);
+        rec.n = glm::normalize(rec.p - object_space_c);
         // rec.mat = mat;
         t_range.max = t2; // Update the t_range to reflect the hit
         return true;
@@ -64,7 +68,7 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec) const
     else return false;
 }
 
-bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec) const 
+bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec,glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const 
 {
     float dnr = glm::dot(normal, ray.d);
     if(dnr == 0) 
@@ -80,7 +84,7 @@ bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec) const
     return true;
 }
 
-bool Box::hit(Ray ray, Interval t_range, HitRecord &rec) const 
+bool Box::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const 
 {
     float tminx = ray.d.x != 0 ? ((low.x - ray.o.x) / ray.d.x) : std::numeric_limits<float>::min();
     float tmaxx = ray.d.x != 0 ? ((hi.x - ray.o.x) / ray.d.x) : std::numeric_limits<float>::max();

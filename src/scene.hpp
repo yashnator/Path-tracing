@@ -118,7 +118,7 @@ public:
 
 class Shape {
 public:
-    virtual bool hit(Ray ray, Interval t_range, HitRecord &rec) const = 0;
+    virtual bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const = 0;
 };
 
 class Sphere: public Shape {
@@ -129,21 +129,21 @@ public:
         c(center),
         r(radius) {
     }
-    bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
+    bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const;
 };
 
 class Plane: public Shape {
 public: 
     glm::vec3 point, normal;
     Plane(glm::vec3 pt, glm::vec3 n): point(pt), normal(n) { };
-    bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
+    bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const override;
 };
 
 class Box: public Shape {
 public:
     glm::vec3 low, hi;
     Box(glm::vec3 minpt, glm::vec3 maxpt): low(minpt), hi(maxpt) { };
-    bool hit(Ray ray, Interval t_range, HitRecord &rec) const override;
+    bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const override;
 };
 
 class Material {
