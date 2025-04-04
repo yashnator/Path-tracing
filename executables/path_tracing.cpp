@@ -15,7 +15,7 @@ int main() {
     // Sphere* ls1 = new Sphere
 
     //Make materials
-    PointLight p3 = PointLight(glm::vec3(0.0,0.8,-2.0),glm::vec3(1.0f,1.0f,1.0f));
+    PointLight p3 = PointLight(glm::vec3(-01.0,0.8,-1.0),glm::vec3(1.0f,1.0f,1.0f));
     p3.intensity*=5;
     // scene.lights.push_back(p3);
 
@@ -33,7 +33,7 @@ int main() {
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
     
     // Add spheres
-    Sphere* s1 = new Sphere(glm::vec3(0.0f, 0.8f, -2.0), 0.1f);
+    Sphere* s1 = new Sphere(glm::vec3(-01.0,0.8,-1.0), 0.5f);
     Object* o1 = new Object(s1, lsrc);
     //Add some basic transform
     // glm::mat4 spTransform = glm::mat4(1.0f);
@@ -50,7 +50,7 @@ int main() {
     Object* o2 = new Object(s2, mat2);
 
     Sphere* s3 = new Sphere(glm::vec3(0.0f, 0.0, -2.0), 0.35f);
-    Object* o3 = new Object(s3, mat3);
+    Object* o3 = new Object(s3, mat2);
 
     // scene.objects.push_back(o2);
     scene.objects.push_back(o1);

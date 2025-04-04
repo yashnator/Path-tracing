@@ -40,64 +40,47 @@ color Scene::radiance(HitRecord &rec) const
     return totalRadiance;
 }
 
-color Scene::computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const
+color Scene::computeColor(Ray ray, int numberOfBounces) const
 {
-    float prob = 1.0 - 1.0/(float)numberOfBounces;
-    glm::vec3 v = direction;
-    color emittedRadiance = glm::vec3(0.0f), otherSources = glm::vec3(0.0f);
-    float cos_theta = glm::dot(glm::normalize(v), rec.n);
-    if(rec.mat) emittedRadiance += rec.mat->emission(rec,v); //The direct emitted radiance from the object
+    std::pair<HitRecord,int> hit = traceRay(ray);
+    if(!hit.second) return sky;
+    glm::vec3 point = hit.first.p;
+    glm::vec3 v = glm::normalize(-1.0f*ray.d);
+    color Le = hit.first.mat->emission(hit.first, v);
+    color Lr = glm::vec3(0.0f);
+
+    float prob = 1.0 - (1.0/(float)numberOfBounces);
+
     //Sample a direction from importance sampling
     glm::vec3 sampledNormal = glm::vec3(0.0f), kr = glm::vec3(0.0f);
-    rec.mat->reflection(rec,v,sampledNormal, kr);
+    hit.first.mat->reflection(hit.first,v,sampledNormal, kr);
     float pdfinverse = glm::length(sampledNormal);
     sampledNormal = glm::normalize(sampledNormal);
+
+    //Get cos_theta_i
+    float cos_theta_i = glm::dot(hit.first.n, sampledNormal);
     
-    if(probability(prob) && cos_theta>0 && sampledNormal!=glm::vec3(0.0f))
+    if(probability(prob) && sampledNormal!=glm::vec3(0.0f))
     {
-        //Trace the ray
-        Ray sampledRay=Ray(rec.p, sampledNormal); HitRecord sampledHit = HitRecord();
-        Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
-        int no_of_hits=0;
-        for(auto const &obj:objects)
+        std::pair<HitRecord,int> hit2 = traceRay(Ray(point+0.001f*hit.first.n, sampledNormal));
+        if(hit2.second)
         {
-            if(obj->hit(sampledRay,t_range,sampledHit)) 
-            {
-                no_of_hits++;
-                t_range.max=std::min(t_range.max,rec.t);
-            }
-        }
-        glm::vec3 l = glm::normalize(sampledHit.p - rec.p);
-        if(no_of_hits==0) ;//Decide what to do
-        else
-        {
-            //Recurse and solve, get the pdf
-            otherSources = (computeColor(sampledHit, -1.0f*l, numberOfBounces)*cos_theta*rec.mat->brdf(rec, l, v))*pdfinverse;
+            Lr = computeColor(Ray(point+0.001f*hit.first.n, sampledNormal),numberOfBounces)*
+                 cos_theta_i*pdfinverse*hit.first.mat->brdf(hit.first, sampledNormal, v)*
+                (1.0f/prob); 
         }
     }
-    return emittedRadiance + otherSources/prob;
+    return Le+Lr;
 }
 
 color Scene::tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const
 {
-    HitRecord rec = HitRecord();
-    Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
-    color res = glm::vec3(0);
-    int no_of_hits = 0;
-    for(auto const &obj:objects)
-    {
-        if(obj->hit(ray, t_range, rec)) 
-        {
-            no_of_hits++;
-            t_range.max=std::min(t_range.max, rec.t);
-        }
-    }
-    if(!no_of_hits) return sky;
+    color c = glm::vec3(0.0f);
     for(int i=0;i<numberOfSamples;i++)
     {
-        res+=computeColor(rec, camera->getLocation()-rec.p, numberOfBounces);
+        c += computeColor(ray, numberOfBounces);
     }
-    return (float)(1.0/(float)numberOfSamples)*res;
+    return c/(float)numberOfSamples;
 }
 
 //Camera functions

@@ -39,10 +39,11 @@ public:
     color ambientLight = glm::vec3(0.0f);
     color getColor(Ray ray, int depth = 2) const;
     color tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const;
-    color computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const;
+    color computeColor(Ray ray, int numberOfBounces) const;
     bool inShadow(glm::vec3 p, PointLight light) const;
     glm::vec3 irradiance(HitRecord &rec, PointLight light) const;
     color radiance(HitRecord &rec) const;
+    std::pair<HitRecord,int> traceRay(Ray ray) const;
 };
 
 class Ray {

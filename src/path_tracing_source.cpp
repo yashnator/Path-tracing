@@ -54,3 +54,19 @@ float cosineHemispherePDF(const glm::vec3& normal, const glm::vec3& dir) {
     float cosTheta = glm::dot(normal, glm::normalize(dir));
     return (cosTheta > 0.0f) ? cosTheta / glm::pi<float>() : 0.0f;
 }
+
+std::pair<HitRecord,int> Scene::traceRay(Ray ray) const
+{
+    HitRecord rec = HitRecord();
+    Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
+    int no_of_hits = 0;
+    for(auto const &obj:objects)
+    {
+        if(obj->hit(ray, t_range, rec)) 
+        {
+            t_range.max=std::min(t_range.max, rec.t);
+            no_of_hits++;
+        }
+    }
+    return std::make_pair(rec, no_of_hits);
+}
