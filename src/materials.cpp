@@ -23,6 +23,7 @@ color Metallic::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 
 bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
 {
+    // std::cout<<"called"<<std::endl;
     float cos_theta = glm::dot(rec.n, glm::normalize(v));
     if(cos_theta < 0) {return false;}
 
@@ -34,6 +35,7 @@ bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color
     if(kr.x<0 || kr.y<0 || kr.z<0) std::cout<<"heavy sudai"<<std::endl;
     kr += (glm::vec3(1.0f) - kr) * glm::pow(1.0f - cos_theta, 5.0f);
     if(kr.x<0 || kr.y<0 || kr.z<0) std::cout<<"kr is negative"<<std::endl;
+    // std::cout<<"successful ref "<<to_string(r)<<std::endl;
     return true;
 }
 bool Emissive::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const

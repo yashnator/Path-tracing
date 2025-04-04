@@ -37,8 +37,7 @@ color Scene::radiance(HitRecord &rec) const
             totalRadiance += irradiance(rec, light) * brdf;
         }
     }
-    // return glm::normalize(totalRadiance + ambientLight*rec.mat->ambientColor);
-    return glm::normalize(totalRadiance);
+    return totalRadiance;
 }
 
 color Scene::computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const
@@ -48,7 +47,6 @@ color Scene::computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounc
     color emittedRadiance = glm::vec3(0.0f), otherSources = glm::vec3(0.0f);
     float cos_theta = glm::dot(glm::normalize(v), rec.n);
     if(rec.mat) emittedRadiance += rec.mat->emission(rec,v); //The direct emitted radiance from the object
-    if(rec.mat) emittedRadiance+=ambientLight*rec.mat->ambientColor; //Ambient color of the object itself
     //Sample a direction from importance sampling
     glm::vec3 sampledNormal = glm::vec3(0.0f), kr = glm::vec3(0.0f);
     rec.mat->reflection(rec,v,sampledNormal, kr);
@@ -128,12 +126,15 @@ color Scene::getColor(Ray ray, int depth) const
             else
             {
                 c = radiance(rec)+rec.mat->emission(rec,ray.d); // if hit is at a light source, adjust
+                if(depth==0) std::cout<<" "<<to_string(c)<<std::endl;
+                // std::cout<<to_string(radiance(rec))<<std::endl;
             }
             no_of_hits++;
             t_range.max=std::min(t_range.max, rec.t);
         }
     }
-    if(!no_of_hits) c = sky;
+    // std::cout<<"check "<<to_string(c)<<std::endl;
+    if(!no_of_hits) {c = sky;}
     else
     {
         //some object was hit, we now need to find if something was reflected from this object
@@ -150,12 +151,18 @@ color Scene::getColor(Ray ray, int depth) const
                 // reflectedColor = glm::vec3(0.0f);
             }
             // std::cout<<"reflection happened"<<std::endl;
+            // std::cout<<"reflected color "<<to_string(reflectedColor)<<std::endl;
         }
 
         //Calculate the final radiance
         glm::vec3 inherent = glm::vec3(1.0f)-kr;
         glm::vec3 reflected = kr;
+        // std::cout<<to_string(reflectedColor)<<std::endl;
         c = inherent * c + reflected * reflectedColor;
+        // if(reflected.x>0.0f && reflected.y>0.0f && reflected.z>0.0f)
+        // {
+        //     std::cout<<"final color "<<to_string(c)<<std::endl;
+        // }
     }
-    return glm::normalize(c);
+    return c;
 }

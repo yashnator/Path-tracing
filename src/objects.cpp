@@ -71,10 +71,11 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::m
 
 bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec,glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const 
 {
+    glm::vec3 os_point = glm::vec3(itf * glm::vec4(point, 1.0f));
     float dnr = glm::dot(normal, ray.d);
     if(dnr == 0) 
         return false;
-    float nr = glm::dot(normal, point - ray.o);
+    float nr = glm::dot(normal, os_point - ray.o);
     float t = nr / dnr;
     if(t < 0 or (not t_range.contains(t))) 
         return false;

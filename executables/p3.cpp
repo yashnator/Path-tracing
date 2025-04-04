@@ -20,7 +20,7 @@ int main() {
     // scene.lights.push_back(p2);
 
     PointLight p3 = PointLight(glm::vec3(0.0,3.0,-2.0),glm::vec3(1.0f,1.0f,1.0f));
-    p3.intensity*=50;
+    p3.intensity*=500;
     scene.lights.push_back(p3);
 
     //Make materials
@@ -41,9 +41,9 @@ int main() {
     Object* o1 = new Object(s1, mat3);
     //Add some basic transform
     glm::mat4 spTransform = glm::mat4(1.0f);
-    spTransform = glm::scale(spTransform, glm::vec3(1.0f,1.0f,1.0f));
+    // spTransform = glm::scale(spTransform, glm::vec3(1.0f,1.0f,1.0f));
     // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -5.0f));
-    o1->setTransform(spTransform);
+    // o1->setTransform(spTransform);
     // o1->debugTransform();
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
@@ -51,7 +51,7 @@ int main() {
     scene.objects.push_back(o2);
     scene.objects.push_back(o1);
 
-    scene.sky = glm::vec3(0.69,0.77,0.87);
+    // scene.sky = glm::vec3(0.69,0.77,0.87);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
 
     for (int j = 0; j < h; j++) {

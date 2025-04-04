@@ -42,20 +42,20 @@ int main() {
     Sphere* s1 = new Sphere(glm::vec3(0.0f, 0, -2.0), 0.4f);
     Object* o1 = new Object(s1, mat3);
     //Add some basic transform
-    glm::mat4 spTransform = glm::mat4(1.0f);
-    // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -1.0f));
-    spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.5f, 1.0f));
-    o1->setTransform(spTransform);
+    // glm::mat4 spTransform = glm::mat4(1.0f);
+    // // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -1.0f));
+    // spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.5f, 1.0f));
+    // o1->setTransform(spTransform);
     // o1->debugTransform();
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
     Object* o2 = new Object(s2, mat2);
 
-    Sphere* s3 = new Sphere(glm::vec3(0.0f, 0, -2.0), 0.35f);
-    Object* o3 = new Object(s3, mat1);
+    Sphere* s3 = new Sphere(glm::vec3(1.0f, 0, -2.0), 0.35f);
+    Object* o3 = new Object(s3, mat3);
 
     scene.objects.push_back(o2);
-    // scene.objects.push_back(o1);
+    scene.objects.push_back(o1);
     scene.objects.push_back(o3);
 
     scene.sky = glm::vec3(0.69,0.77,0.87);
