@@ -37,7 +37,7 @@ public:
     std::vector<PointLight> lights;
     color sky = glm::vec3(0.0f);
     color ambientLight = glm::vec3(0.0f);
-    color getColor(Ray ray, int depth = 1) const;
+    color getColor(Ray ray, int depth = 2) const;
     color tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const;
     color computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const;
     bool inShadow(glm::vec3 p, PointLight light) const;
@@ -97,7 +97,7 @@ class Object {
 public:
     Shape *shape;
     Material *mat;
-    glm::mat4 transform, normalTransform, inverse;
+    glm::mat4 transform, normalTransform, inverse;    //Metallic materials
     Object(Shape *shape, Material *mat, glm::mat4 M=glm::mat4(1.0)):
         shape(shape),
         mat(mat) {

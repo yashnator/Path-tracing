@@ -27,15 +27,21 @@ int main() {
     Material* mat1 = new Lambertian(glm::vec3(1.0f, 1.0f, 0.0f));
     mat1->ambientColor = glm::vec3(0.0,1.0,0.0);
 
+    //Metallic materials
+    color albedo = glm::vec3(1.0f, 1.0f, 1.0f);
+    color parallelReflection = glm::vec3(0.5f, 0.5f, 0.5f); //The F0 value
+    int expo = 200;
+    Material* mat3 = new Metallic(parallelReflection, expo, albedo);
+
     Material* mat2 = new Lambertian(glm::vec3(0.55,0.27,0.07));
     // mat2->ambientColor = glm::vec3(0.55,0.27,0.07);
     
     // Add spheres
     Sphere* s1 = new Sphere(glm::vec3(0, 0, -2.0), 0.25f);
-    Object* o1 = new Object(s1, mat1);
+    Object* o1 = new Object(s1, mat3);
     //Add some basic transform
     glm::mat4 spTransform = glm::mat4(1.0f);
-    spTransform = glm::scale(spTransform, glm::vec3(2.0f, 2.0f, 2.0f));
+    spTransform = glm::scale(spTransform, glm::vec3(1.0f,1.0f,1.0f));
     // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -5.0f));
     o1->setTransform(spTransform);
     // o1->debugTransform();

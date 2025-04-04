@@ -52,7 +52,6 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::m
         rec.t = t1;
         rec.p = ray.at(t1);
         rec.n = glm::normalize(rec.p - object_space_c);
-        // rec.mat = mat;
         t_range.max = t1; // Update the t_range to reflect the hit
         return true;
     }
@@ -62,7 +61,9 @@ bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::m
         rec.p = ray.at(t2);
         rec.n = glm::normalize(rec.p - object_space_c);
         // rec.mat = mat;
+        float cos_theta = glm::dot(rec.n, ray.o - rec.p);
         t_range.max = t2; // Update the t_range to reflect the hit
+        // std::cout<<"hit recv"<<std::endl;
         return true;
     }
     else return false;
