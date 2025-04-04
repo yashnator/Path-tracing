@@ -39,7 +39,7 @@ int main() {
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
     
     // Add spheres
-    Sphere* s1 = new Sphere(glm::vec3(0.0f, 0, -3.0), 0.35f);
+    Sphere* s1 = new Sphere(glm::vec3(0.0f, 0, -5.0), 0.35f);
     Object* o1 = new Object(s1, mat3);
     //Add some basic transform
     glm::mat4 spTransform = glm::mat4(1.0f);
@@ -56,7 +56,7 @@ int main() {
 
     scene.objects.push_back(o2);
     scene.objects.push_back(o1);
-    // scene.objects.push_back(o3);
+    scene.objects.push_back(o3);
 
     scene.sky = glm::vec3(0.69,0.77,0.87);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
@@ -80,8 +80,8 @@ int main() {
     tonemap(image, out, 1, 2.2f);
     IMG_SavePNG(out, "part_5.png");
 
-    Ray test = Ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    std::cout<<to_string(scene.getColor(test))<<std::endl;
+    // Ray test = Ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // std::cout<<to_string(scene.getColor(test))<<std::endl;
 
     //Memory cleanup
     // for(auto obj: scene.objects) delete obj;

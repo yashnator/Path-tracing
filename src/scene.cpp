@@ -347,7 +347,7 @@ color Metallic::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 
 bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
 {
-    float cos_theta = glm::dot(rec.n, v);
+    float cos_theta = glm::dot(rec.n, glm::normalize(v));
     if(cos_theta < 0) {return false;}
 
     glm::vec3 d = glm::normalize(-1.0f * v);
@@ -355,7 +355,9 @@ bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color
 
     //Apply the schlick's approximation
     kr = parallelReflection;
-    kr += (glm::vec3(1.0f) - parallelReflection) * glm::pow(1.0f - cos_theta, 5.0f);
+    if(kr.x<0 || kr.y<0 || kr.z<0) std::cout<<"heavy sudai"<<std::endl;
+    kr += (glm::vec3(1.0f) - kr) * glm::pow(1.0f - cos_theta, 5.0f);
+    if(kr.x<0 || kr.y<0 || kr.z<0) std::cout<<"kr is negative"<<std::endl;
     return true;
 } 
 //Sampling functions
