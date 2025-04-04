@@ -7,6 +7,7 @@ color Lambertian::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 }
 bool Lambertian::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
 {
+    kr = glm::vec3(0.0f);
     r = sampleCosineHemisphere(rec.n);
     return false;
 }
@@ -15,7 +16,7 @@ color Metallic::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 {
     glm::vec3 bisector = glm::normalize(glm::normalize(l) + glm::normalize(v));
     float cos_theta = glm::dot(rec.n, bisector);
-    if(cos_theta < 0) return glm::vec3(0.0f);
+    if(cos_theta < 0.0f) return glm::vec3(0.0f);
     cos_theta = std::pow(cos_theta, shininess);
     return (albedo * cos_theta) / glm::pi<float>();
 }

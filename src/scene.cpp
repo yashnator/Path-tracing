@@ -37,7 +37,8 @@ color Scene::radiance(HitRecord &rec) const
             totalRadiance += irradiance(rec, light) * brdf;
         }
     }
-    return (totalRadiance + ambientLight*rec.mat->ambientColor);
+    // return glm::normalize(totalRadiance + ambientLight*rec.mat->ambientColor);
+    return glm::normalize(totalRadiance);
 }
 
 color Scene::computeColor(HitRecord& rec, glm::vec3 direction, int numberOfBounces) const
@@ -156,5 +157,5 @@ color Scene::getColor(Ray ray, int depth) const
         glm::vec3 reflected = kr;
         c = inherent * c + reflected * reflectedColor;
     }
-    return c;
+    return glm::normalize(c);
 }
