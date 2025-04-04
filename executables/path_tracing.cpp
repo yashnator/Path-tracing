@@ -11,44 +11,46 @@ int main() {
     scene.camera = new Camera();
 
     //Make light sources
-    
+    Material* lsrc = new Emissive(glm::vec3(50.0f,50.0f,0.0f));
+    // Sphere* ls1 = new Sphere
 
     //Make materials
 
     //Lambertian materials
     Material* mat1 = new Lambertian(glm::vec3(1.0f, 1.0f, 1.0f));
-    mat1->ambientColor = glm::vec3(0.0,1.0,0.0);
+    mat1->ambientColor = glm::vec3(0.0,0.01,0.0);
 
     Material* mat2 = new Lambertian(glm::vec3(1.0f, 1.0f, 1.0f));
     mat2->ambientColor = glm::vec3(0.55,0.27,0.07);
 
     //Metallic materials
-    color albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-    color parallelReflection = glm::vec3(0.5f, 0.5f, 0.5f); //The F0 value
-    int expo = 1;
-    Material* mat3 = new Metallic(parallelReflection, expo, albedo);
+    // color albedo = glm::vec3(1.0f, 1.0f, 1.0f);
+    // color parallelReflection = glm::vec3(0.5f, 0.5f, 0.5f); //The F0 value
+    // int expo = 200;
+    // Material* mat3 = new Metallic(parallelReflection, expo, albedo);
     
     // Add spheres
-    Sphere* s1 = new Sphere(glm::vec3(-1.0f, 0, -2.0), 0.35f);
-    Object* o1 = new Object(s1, mat3);
+    Sphere* s1 = new Sphere(glm::vec3(0.0f, 3.5f, -2.0), 0.1f);
+    Object* o1 = new Object(s1, lsrc);
     //Add some basic transform
-    glm::mat4 spTransform = glm::mat4(1.0f);
-    spTransform = glm::translate(spTransform, glm::vec3(-1.0f, 0.0f, 0.0f));
-    // spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.0f, 1.0f));
+    // glm::mat4 spTransform = glm::mat4(1.0f);
+    // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -1.0f));
+    // spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.5f, 1.0f));
     // o1->setTransform(spTransform);
     // o1->debugTransform();
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
-    Object* o2 = new Object(s2, mat2);
+    Object* o2 = new Object(s2, mat1);
 
     Sphere* s3 = new Sphere(glm::vec3(0.0f, 0, -2.0), 0.35f);
-    Object* o3 = new Object(s3, mat1);
+    Object* o3 = new Object(s3, mat2);
 
     scene.objects.push_back(o2);
     scene.objects.push_back(o1);
     scene.objects.push_back(o3);
 
-    scene.sky = glm::vec3(0.69,0.77,0.87);
+    // scene.sky = glm::vec3(0.69,0.77,0.87);
+    scene.sky = glm::vec3(0.0,0.0,0.0);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
 
     for (int j = 0; j < h; j++) {
@@ -60,14 +62,20 @@ int main() {
 
             // trace the ray and get the colour
             // color c = glm::normalize(ray.d)*0.5f + 0.5f;;
-            color c = scene.getColor(ray);
+            color c = scene.tracePath(ray, 100, 2);
+            // std::cout<<x<<" "<<y<<" "<<to_string(c)<<std::endl;
             image.pixel(i, j) = c;
 
         }
     }
     SDL_Surface *out = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
     tonemap(image, out, 1, 2.2f);
-    IMG_SavePNG(out, "path_trace.png");
+    std::string filename = "path_tracing.png";
+    IMG_SavePNG(out, filename.data());
+    openImage(filename.data());
+
+    // Ray test = Ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // std::cout<<to_string(scene.getColor(test))<<std::endl;
 
     //Memory cleanup
     // for(auto obj: scene.objects) delete obj;

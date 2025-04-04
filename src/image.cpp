@@ -14,3 +14,14 @@ void tonemap(const HDRImage &hdri, SDL_Surface* ldri,
         }
     }
 }
+
+void openImage(const char* filename) {
+    #if defined(_WIN32) || defined(_WIN64)
+        std::string command = "start " + std::string(filename);
+    #elif defined(__APPLE__)
+        std::string command = "open " + std::string(filename);
+    #else // Linux / Unix
+        std::string command = "xdg-open " + std::string(filename);
+    #endif
+        std::system(command.c_str());
+    }

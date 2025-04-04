@@ -24,6 +24,9 @@ class Camera;
 
 bool probability(float p);
 glm::vec3 sampleCosineHemisphere(const glm::vec3& normal);
+glm::vec3 sampleCosineHemisphereLocal();
+glm::vec3 toWorldSpace(const glm::vec3& local, const glm::vec3& normal);
+float cosineHemispherePDF(const glm::vec3& normal, const glm::vec3& dir);
 
 class Scene {
 public:
@@ -108,7 +111,6 @@ public:
     }
     void debugTransform();
     ~Object() {
-        delete shape;delete mat;
     }
 };
 
@@ -161,9 +163,7 @@ public:
     }
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
     virtual bool reflection(const HitRecord &rec, glm::vec3 v,
-                            glm::vec3 &r, color &kr) const {
-        return false;
-    }
+                            glm::vec3 &r, color &kr) const;
 };
 
 class Metallic: public Material {
@@ -184,13 +184,12 @@ public:
     Emissive(color emittedRadiance):
         emittedRadiance(emittedRadiance) {
     }
+    virtual color emission(const HitRecord &rec, glm::vec3 v) const;
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const {
         return glm::vec3(0.0f);
     }
     virtual bool reflection(const HitRecord &rec, glm::vec3 v,
-                            glm::vec3 &r, color &kr) const {
-        return false;
-    }
+                            glm::vec3 &r, color &kr) const;
 };
 
 class PointLight {

@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <vector>
+#include <string>
+#include <cstdlib>
 
 using color = glm::vec3;
 
@@ -27,5 +29,7 @@ public:
 
 void tonemap(const HDRImage &hdri, SDL_Surface* ldri,
              float exposure=1, float gamma=2.2);
+
+void openImage(const char* filename);
 
 #endif
