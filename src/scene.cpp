@@ -105,7 +105,7 @@ color Scene::tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const
     color direct_light = glm::vec3(0.0f);
     std::pair<HitRecord,int> hit = traceRay(ray);
     if(hit.second) direct_light+= radiance(hit.first);
-    if(hit.second) direct_light+= radianceFromEmissive(hit.first);
+    // if(hit.second) direct_light+= radianceFromEmissive(hit.first);
     return c/(float)numberOfSamples + direct_light;
 }
 
@@ -131,15 +131,22 @@ color Scene::getColor(Ray ray, int depth) const
     {
         if(obj->hit(ray, t_range, rec)) 
         {
+            std::cout<<to_string(rec.n)<<std::endl;
+            // std::cout<<to_string(rec.p)<<std::endl;
             if(!obj->mat) {c = (float)0.5 * (rec.n + glm::vec3(1));}
             else
             {
                 c = radiance(rec)+rec.mat->emission(rec,ray.d); // if hit is at a light source, adjust
-                if(depth==0) std::cout<<" "<<to_string(c)<<std::endl;
+                // if(depth==0) std::cout<<" "<<to_string(c)<<std::endl;
                 // std::cout<<to_string(radiance(rec))<<std::endl;
             }
             no_of_hits++;
             t_range.max=std::min(t_range.max, rec.t);
+        }
+        else
+        {
+            // std::cout<<"no hit"<<std::endl;
+            // std::cout<<to_string(ray.o)<<" "<<to_string(ray.d)<<std::endl;
         }
     }
     // std::cout<<"check "<<to_string(c)<<std::endl;
@@ -149,11 +156,12 @@ color Scene::getColor(Ray ray, int depth) const
         //some object was hit, we now need to find if something was reflected from this object
         //Get the reflection coefficient and the reflected direction
         glm::vec3 kr = glm::vec3(0.0f), r = glm::vec3(0.0f), reflectedColor = glm::vec3(0.0f);
-        if(rec.mat->reflection(rec,ray.o-rec.p, r, kr))
+        if(rec.mat && rec.mat->reflection(rec,ray.o-rec.p, r, kr))
         {
             //calculate the reflected color. bias added
             Ray reflectedRay = Ray(rec.p + 0.001f*rec.n, r);
             reflectedColor = getColor(reflectedRay, depth-1);
+            // reflectedColor *= rec.mat->brdf(rec, r, ray.o-rec.p);
             if(reflectedColor.x < 0 || reflectedColor.y < 0 || reflectedColor.z < 0)
             {
                 std::cout<<"Reflected color is negative"<<std::endl;
@@ -169,5 +177,7 @@ color Scene::getColor(Ray ray, int depth) const
         // std::cout<<to_string(reflectedColor)<<std::endl;
         c = inherent * c + reflected * reflectedColor;
     }
+    // if(no_of_hits){std::cout<<"final allot "<<std::endl;
+    // std::cout<<to_string(c)<<std::endl;}
     return c;
 }

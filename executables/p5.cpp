@@ -34,13 +34,15 @@ int main() {
 
     //Metallic materials
     color albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-    color parallelReflection = glm::vec3(0.5f, 0.5f, 0.5f); //The F0 value
+    color parallelReflection = glm::vec3(1.0f, 0.85f, 0.57f); //The F0 value
     int expo = 200;
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
-    
+
+    Material* silver = new TorrenceSparrow(glm::vec3(0.5,0.5,0.5),0.3,glm::vec3(1.0f));
+    // glm::vec3(0.972, 0.960, 0.915)
     // Add spheres
     Sphere* s1 = new Sphere(glm::vec3(0.0f, 0, -2.0), 0.4f);
-    Object* o1 = new Object(s1, mat3);
+    Object* o1 = new Object(s1, silver);
     //Add some basic transform
     // glm::mat4 spTransform = glm::mat4(1.0f);
     // // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -1.0f));
@@ -56,7 +58,7 @@ int main() {
 
     scene.objects.push_back(o2);
     scene.objects.push_back(o1);
-    scene.objects.push_back(o3);
+    // scene.objects.push_back(o3);
 
     scene.sky = glm::vec3(0.69,0.77,0.87);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);

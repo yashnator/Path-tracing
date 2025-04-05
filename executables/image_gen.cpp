@@ -15,12 +15,21 @@ int main() {
     // Sphere* ls1 = new Sphere
 
     //Make materials
-    PointLight p3 = PointLight(glm::vec3(1.0,0.8,-1.0),glm::vec3(1.0f,1.0f,1.0f));
-    p3.intensity*=10;
-    scene.lights.push_back(p3);
+    PointLight pl1 = PointLight(glm::vec3(-5.0,5.0,0.0), glm::vec3(1.0f,1.0f,1.0f));
+    pl1.intensity*=100;
+    scene.lights.push_back(pl1);
+    PointLight pl2 = PointLight(glm::vec3(5.0,5.0,0.0), glm::vec3(1.0f,1.0f,1.0f));
+    pl2.intensity*=100;
+    scene.lights.push_back(pl2);
+    PointLight pl3 = PointLight(glm::vec3(0.0,10.0,-20.0),glm::vec3(1.0f,1.0f,1.0f));
+    pl3.intensity*=1000;
+    scene.lights.push_back(pl3);
 
     //Lambertian materials
     Material* mat1 = new Lambertian(glm::vec3(1.0f, 1.0f, 1.0f));
+    Material* blue_mat = new Lambertian(glm::vec3(0.0f, 0.0f, 1.0f));
+    Material* red_mat = new Lambertian(glm::vec3(1.0f, 0.0f, 0.0f));
+    Material* green_mat = new Lambertian(glm::vec3(0.0f, 1.0f, 0.0f));
     // mat1->ambientColor = glm::vec3(0.0,0.01,0.0);
 
     Material* mat2 = new Lambertian(glm::vec3(0.55,0.27,0.07));
@@ -35,16 +44,20 @@ int main() {
     // Add spheres
     Sphere* s1 = new Sphere(glm::vec3(-01.0,0.8,-1.0), 0.5f);
     Object* o1 = new Object(s1, lsrc);
-    //Add some basic transform
-    // glm::mat4 spTransform = glm::mat4(1.0f);
-    // spTransform = glm::translate(spTransform, glm::vec3(0.0f, 0.0f, -1.0f));
-    // spTransform = glm::scale(spTransform, glm::vec3(1.5f, 1.5f, 1.0f));
-    // o1->setTransform(spTransform);
-    // o1->debugTransform();
 
     //Add planes
     Plane* p1 = new Plane(glm::vec3(0, -1.0, 0), glm::vec3(0.0, 1.0, 0.0));
     Object* p1_obj = new Object(p1, mat2);
+
+    //Add boxes
+    Box* b1 = new Box(glm::vec3(-0.8f, -0.25f, -2.5f), glm::vec3(-0.5f, 0.25f, -2.0f));
+    Object* o4 = new Object(b1, blue_mat);
+
+    Box* b2 = new Box(glm::vec3(0.5f, -0.25f, -2.5f), glm::vec3(0.8f, 0.25f, -2.0f));
+    Object* o5 = new Object(b2, red_mat);
+
+    Box* b3 = new Box(glm::vec3(-0.2f, 0.5f, -2.5f), glm::vec3(0.2f, 0.75f, -2.0f));
+    Object* o6 = new Object(b3, green_mat);
 
     Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
     Object* o2 = new Object(s2, mat2);
@@ -53,11 +66,14 @@ int main() {
     Object* o3 = new Object(s3, mat3);
 
     // scene.objects.push_back(o2);
-    scene.objects.push_back(o1);
-    scene.objects.push_back(o3);
+    // scene.objects.push_back(o1);
+    // scene.objects.push_back(o3);
     scene.objects.push_back(p1_obj);
+    scene.objects.push_back(o4);
+    scene.objects.push_back(o5);
+    scene.objects.push_back(o6);
 
-    scene.sky = glm::vec3(0.69,0.77,0.87);
+    // scene.sky = glm::vec3(0.69,0.77,0.87);
     // scene.sky = glm::vec3(0.0,0.0,0.0);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
 
@@ -70,8 +86,8 @@ int main() {
 
             // trace the ray and get the colour
             // color c = glm::normalize(ray.d)*0.5f + 0.5f;;
-            color c = scene.tracePath(ray, 100, 5);
-            // color c = scene.getColor(ray);
+            // color c = scene.tracePath(ray, 100, 5);
+            color c = scene.getColor(ray);
             // std::cout<<x<<" "<<y<<" "<<to_string(c)<<std::endl;
             image.pixel(i, j) = c;
 
@@ -83,11 +99,6 @@ int main() {
     IMG_SavePNG(out, filename.data());
     openImage(filename.data());
 
-    // Ray test = Ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    // std::cout<<to_string(scene.getColor(test))<<std::endl;
-
-    //Memory cleanup
-    // for(auto obj: scene.objects) delete obj;
     delete scene.camera;
-    // delete mat1;
+
 }

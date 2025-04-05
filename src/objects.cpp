@@ -1,5 +1,13 @@
 #include "scene.hpp"
 //Object functions
+void Object::setTransform(glm::mat4 M)
+{
+    glm::mat4 N = glm::translate(glm::mat4(1.0f), shape->center);
+    transform = N * M * glm::inverse(N);
+    normalTransform = glm::inverseTranspose(transform);
+    inverse = glm::inverse(transform);
+}
+
 bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
 {
     glm::vec3 new_direction = glm::vec3(inverse * glm::vec4(ray.d, 0.0f));
@@ -8,11 +16,8 @@ bool Object::hit(Ray ray, Interval t_range, HitRecord &rec) const
     // transformed_ray.debugRay();
     if(shape->hit(transformed_ray, t_range, rec, transform, inverse, normalTransform))
     {
-        // std::cout<<"hit received"<<std::endl;
-        // std::cout<<"at: "<<glm::to_string(rec.p)<<std::endl;
         rec.p = glm::vec3(transform * glm::vec4(rec.p, 1.0f));
         rec.n = glm::normalize(glm::vec3(normalTransform * glm::vec4(rec.n, 0.0f)));
-        // std::cout<<glm::to_string(rec.n)<<std::endl;
         rec.mat=mat;
         return true;
     }
@@ -34,7 +39,7 @@ HitRecord::HitRecord(): t(std::numeric_limits<float>::max()), p(glm::vec3(0)), n
 bool Sphere::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const
 {
     // std::cout<<to_string(ray.o)<<" "<<to_string(ray.d)<<std::endl;
-    glm::vec3 object_space_c = glm::vec3(itf * glm::vec4(this->c, 1.0f));
+    glm::vec3 object_space_c = glm::vec3(glm::vec4(this->c, 1.0f));
     float qa = glm::dot(ray.d, ray.d);
     float qb = glm::dot(2.0f * ray.d, ray.o - object_space_c);
     float qc = glm::dot(ray.o - object_space_c, ray.o - object_space_c) - r * r;
@@ -86,33 +91,49 @@ bool Plane::hit(Ray ray, Interval t_range, HitRecord &rec,glm::mat4 tf, glm::mat
     return true;
 }
 
+
 bool Box::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const 
 {
-    float tminx = ray.d.x != 0 ? ((low.x - ray.o.x) / ray.d.x) : std::numeric_limits<float>::min();
-    float tmaxx = ray.d.x != 0 ? ((hi.x - ray.o.x) / ray.d.x) : std::numeric_limits<float>::max();
-    float tminy = ray.d.y != 0 ? ((low.y - ray.o.y) / ray.d.y) : std::numeric_limits<float>::min();
-    float tmaxy = ray.d.y != 0 ? ((hi.y - ray.o.y) / ray.d.y) : std::numeric_limits<float>::max();
-    float tminz = ray.d.z != 0 ? ((low.z - ray.o.z) / ray.d.z) : std::numeric_limits<float>::min();
-    float tmaxz = ray.d.z != 0 ? ((hi.z - ray.o.z) / ray.d.z) : std::numeric_limits<float>::max();
-    // if(tminx > tmaxx) std::swap(tminx, tmaxx);
-    // if(tminy > tmaxy) std::swap(tminy, tmaxy);
-    // if(tminz > tmaxz) std::swap(tminz, tmaxz);
-    float tmin = std::max(tminx, std::max(tminy, tminz));
-    float tmax = std::min(tmaxx, std::min(tmaxy, tmaxz));
-    if(tmax > 0 and tmin <= tmax) {
-        rec.t = tmin;
-    // std::cout << "Found a collision at " << tmin << " " << tmax << std::endl;
-        rec.p = ray.at(tmin);
-        rec.n = glm::vec3(0.0);
-        if(tmin == tminx) {
-            rec.n.x = tmin >= 0 ? 1 : -1;
-        } else if(tmin == tminy) {
-            rec.n.y = tmin >= 0 ? 1 : -1;
-        } else {
-            rec.n.z = tmin >= 0 ? 1 : -1;
+    glm::vec3 tlow = glm::vec3(glm::vec4(low, 1.0f));
+    glm::vec3 thi = glm::vec3(glm::vec4(hi, 1.0f));
+
+    // glm::vec4 miz = glm::vec4(0.0, 0.0, tlow.z, 1.0f);
+    // glm::vec4 maxz = glm::vec4(0.0, 0.0, thi.z, 1.0f);
+    // tlow.z = (itf*miz).z;
+    // thi.z = (itf*maxz).z;
+
+    // std::cout<<"tlow: "<<to_string(tlow)<<" thi: "<<to_string(thi)<<std::endl;
+
+    float tminx = ((tlow.x - ray.o.x) / ray.d.x);
+    float tmaxx = ((thi.x - ray.o.x) / ray.d.x);
+    float tminy = ((tlow.y - ray.o.y) / ray.d.y);
+    float tmaxy = ((thi.y - ray.o.y) / ray.d.y);
+    float tminz = ((tlow.z - ray.o.z) / ray.d.z);
+    float tmaxz = ((thi.z - ray.o.z) / ray.d.z);
+    float tmin = std::max(std::min(tminx, tmaxx), std::max(std::min(tminy, tmaxy), std::min(tminz, tmaxz)));
+    float tmax = std::min(std::max(tminx, tmaxx), std::min(std::max(tminy, tmaxy), std::max(tminz, tmaxz)));
+    if(tmax < 0) 
+        {
+        // std::cout<<"tmax < 0"<<std::endl;
+        return false;
         }
-        t_range.max = tmin;
-        return true;
+    if(tmin > tmax) {
+        // std::cout<<"tmin > tmax"<<std::endl;
+        return false;
     }
-    return false;
+    rec.t = tmin;
+    rec.p = ray.at(tmin);
+    rec.n = glm::vec3(0.0);
+    if(tmin == std::min(tminx, tmaxx)) {
+        if(tminx==tmin) rec.n.x = -1;
+        else rec.n.x = 1;
+    } else if(tmin == std::min(tminy, tmaxy)) {
+        if (tminy==tmin) rec.n.y = -1;
+        else rec.n.y = 1;
+    } else {
+        if(tminz==tmin) rec.n.z = -1;
+        else rec.n.z = 1;
+    }
+    t_range.max = tmin;
+    return true;
 }

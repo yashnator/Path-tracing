@@ -108,11 +108,7 @@ public:
             inverse = glm::mat4(1.0);
     }
     bool hit(Ray ray, Interval t_range, HitRecord &rec) const;
-    void setTransform(glm::mat4 M) {
-        transform = M;
-        normalTransform = glm::inverseTranspose(M);
-        inverse = glm::inverse(M);
-    }
+    void setTransform(glm::mat4 M);
     void debugTransform();
     ~Object() {
     }
@@ -120,6 +116,7 @@ public:
 
 class Shape {
 public:
+    glm::vec3 center = glm::vec3(0.0f);
     virtual bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const = 0;
 };
 
@@ -127,9 +124,10 @@ class Sphere: public Shape {
 public:
     glm::vec3 c;
     float r;
-    Sphere(glm::vec3 center, float radius):
-        c(center),
+    Sphere(glm::vec3 cent, float radius):
+        c(cent),
         r(radius) {
+            center = cent;
     }
     bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const;
 };
@@ -137,14 +135,14 @@ public:
 class Plane: public Shape {
 public: 
     glm::vec3 point, normal;
-    Plane(glm::vec3 pt, glm::vec3 n): point(pt), normal(n) { };
+    Plane(glm::vec3 pt, glm::vec3 n): point(pt), normal(n) { center = point; };
     bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const override;
 };
 
 class Box: public Shape {
 public:
     glm::vec3 low, hi;
-    Box(glm::vec3 minpt, glm::vec3 maxpt): low(minpt), hi(maxpt) { };
+    Box(glm::vec3 minpt, glm::vec3 maxpt): low(minpt), hi(maxpt) { center = hi+(low-hi)/2.0f; };
     bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const override;
 };
 
@@ -177,6 +175,18 @@ public:
     color albedo; //specular reflection coefficient
     Metallic(color parallelReflection, int blinnPhongExponent, color albedo):
         parallelReflection(parallelReflection), shininess(blinnPhongExponent), albedo(albedo) {
+    }
+    virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
+    virtual bool reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const;
+};
+
+class TorrenceSparrow: public Material {
+public: 
+    color parallelReflection;
+    float roughness;
+    color albedo;
+    TorrenceSparrow(color parallelReflection, float roughness, color albedo):
+        parallelReflection(parallelReflection), roughness(roughness), albedo(albedo) {
     }
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
     virtual bool reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const;
