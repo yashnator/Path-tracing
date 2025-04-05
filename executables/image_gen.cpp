@@ -16,34 +16,39 @@ int main() {
 
     //Make materials
     PointLight pl1 = PointLight(glm::vec3(-5.0,5.0,0.0), glm::vec3(1.0f,1.0f,1.0f));
-    pl1.intensity*=100;
+    pl1.intensity*=200;
     scene.lights.push_back(pl1);
     PointLight pl2 = PointLight(glm::vec3(5.0,5.0,0.0), glm::vec3(1.0f,1.0f,1.0f));
-    pl2.intensity*=100;
-    scene.lights.push_back(pl2);
+    pl2.intensity*=200;
+    // scene.lights.push_back(pl2);
     PointLight pl3 = PointLight(glm::vec3(0.0,10.0,-20.0),glm::vec3(1.0f,1.0f,1.0f));
     pl3.intensity*=1000;
-    scene.lights.push_back(pl3);
+    // scene.lights.push_back(pl3);
 
     //Lambertian materials
     Material* mat1 = new Lambertian(glm::vec3(1.0f, 1.0f, 1.0f));
     Material* blue_mat = new Lambertian(glm::vec3(0.0f, 0.0f, 1.0f));
     Material* red_mat = new Lambertian(glm::vec3(1.0f, 0.0f, 0.0f));
     Material* green_mat = new Lambertian(glm::vec3(0.0f, 1.0f, 0.0f));
+    Material* purple_mat = new Lambertian(glm::vec3(1.0f, 0.0f, 1.0f));
     // mat1->ambientColor = glm::vec3(0.0,0.01,0.0);
 
-    Material* mat2 = new Lambertian(glm::vec3(0.55,0.27,0.07));
+    Material* mat2 = new Lambertian(glm::vec3(0.1,0.1,0.1));
     // mat2->ambientColor = glm::vec3(0.55,0.27,0.07);
 
     //Metallic materials
     color albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-    color parallelReflection = glm::vec3(0.5f, 0.5f, 0.5f); //The F0 value
+    color parallelReflection = glm::vec3(0.5f, 0.2f, 0.5f); //The F0 value
     int expo = 200;
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
     
     // Add spheres
     Sphere* s1 = new Sphere(glm::vec3(-01.0,0.8,-1.0), 0.5f);
     Object* o1 = new Object(s1, lsrc);
+
+    Sphere* s2 = new Sphere(glm::vec3(-0.8f, 0.0, -5.0), 1.0f);
+    Object* o7 = new Object(s2, mat3);
+    // o7->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(100.0f), glm::vec3(0.0f, 1.0f, 0.0f))*glm::scale(glm::mat4(1.0f), glm::vec3(2.0f,1.0f,1.0f)));
 
     //Add planes
     Plane* p1 = new Plane(glm::vec3(0, -1.0, 0), glm::vec3(0.0, 1.0, 0.0));
@@ -55,25 +60,22 @@ int main() {
 
     Box* b2 = new Box(glm::vec3(0.5f, -0.25f, -2.5f), glm::vec3(0.8f, 0.25f, -2.0f));
     Object* o5 = new Object(b2, red_mat);
+    // o5->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 
-    Box* b3 = new Box(glm::vec3(-0.2f, 0.5f, -2.5f), glm::vec3(0.2f, 0.75f, -2.0f));
+    Box* b3 = new Box(glm::vec3(-0.2f, -1.0f, -3.5f), glm::vec3(0.4f, -0.75f, -4.0f));
     Object* o6 = new Object(b3, green_mat);
-
-    Sphere* s2 = new Sphere(glm::vec3(0, -101, -2), 100);
-    Object* o2 = new Object(s2, mat2);
-
-    Sphere* s3 = new Sphere(glm::vec3(0.0f, 0.0, -2.0), 0.35f);
-    Object* o3 = new Object(s3, mat3);
+    // o6->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
     // scene.objects.push_back(o2);
     // scene.objects.push_back(o1);
     // scene.objects.push_back(o3);
     scene.objects.push_back(p1_obj);
-    scene.objects.push_back(o4);
+    // scene.objects.push_back(o4);
     scene.objects.push_back(o5);
     scene.objects.push_back(o6);
+    scene.objects.push_back(o7);
 
-    // scene.sky = glm::vec3(0.69,0.77,0.87);
+    scene.sky = glm::vec3(0.69,0.77,0.87);
     // scene.sky = glm::vec3(0.0,0.0,0.0);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
 

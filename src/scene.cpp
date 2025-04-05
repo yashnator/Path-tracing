@@ -131,7 +131,7 @@ color Scene::getColor(Ray ray, int depth) const
     {
         if(obj->hit(ray, t_range, rec)) 
         {
-            std::cout<<to_string(rec.n)<<std::endl;
+            // std::cout<<to_string(rec.n)<<std::endl;
             // std::cout<<to_string(rec.p)<<std::endl;
             if(!obj->mat) {c = (float)0.5 * (rec.n + glm::vec3(1));}
             else
