@@ -12,7 +12,6 @@ int main() {
 
     //Make light sources
     Material* lsrc = new Emissive(glm::vec3(1.0f,1.0f,1.0f) * 10.0f);
-    Material* lsrc2 = new EmissiveRectangle(glm::vec3(1.0f,1.0f,1.0f) * 10.0f);
     // Sphere* ls1 = new Sphere
 
     //Make materials
@@ -44,13 +43,10 @@ int main() {
     color parallelReflection = glm::vec3(0.5f, 0.2f, 0.5f); //The F0 value
     int expo = 1;
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
-
-    // Emissive rectangle
-    Object* er1 = new Object(new Rectangle(glm::vec3(-1.0f, 4.8f, -12.0f), glm::vec3(1.0f, 4.8f, -14.0f)), lsrc2);
     
     // Add spheres
-    // Sphere* s1 = new Sphere(glm::vec3(-0.0f, 3.5f, -12.0), 1.5f);
-    // Object* o1 = new Object(s1, lsrc);
+    Sphere* s1 = new Sphere(glm::vec3(-0.0f, 3.5f, -12.0), 1.5f);
+    Object* o1 = new Object(s1, lsrc);
 
     // Sphere* s2 = new Sphere(glm::vec3(-0.8f, 0.0, -5.0), 1.0f);
     // Object* o7 = new Object(s2, mat3);
@@ -86,7 +82,6 @@ int main() {
     // Object* o6 = new Object(b3, green_mat);
     // o6->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
-    scene.objects.push_back(er1);
     // scene.objects.push_back(o2);
     // scene.objects.push_back(o3);
     // scene.objects.push_back(p1_obj);
@@ -96,7 +91,7 @@ int main() {
     scene.objects.push_back(top_wall);
     scene.objects.push_back(back_wall);
     
-    // scene.objects.push_back(o1);
+    scene.objects.push_back(o1);
     scene.objects.push_back(b1);
     scene.objects.push_back(sp1);
     // scene.objects.push_back(b1);

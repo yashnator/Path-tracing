@@ -11,8 +11,7 @@ int main() {
     scene.camera = new Camera();
 
     //Make light sources
-    Material* lsrc = new Emissive(glm::vec3(1.0f,1.0f,1.0f) * 10.0f);
-    Material* lsrc2 = new EmissiveRectangle(glm::vec3(1.0f,1.0f,1.0f) * 10.0f);
+    // Material* lsrc = new Emissive(glm::vec3(1.0f,1.0f,1.0f));
     // Sphere* ls1 = new Sphere
 
     //Make materials
@@ -44,12 +43,9 @@ int main() {
     color parallelReflection = glm::vec3(0.5f, 0.2f, 0.5f); //The F0 value
     int expo = 1;
     Material* mat3 = new Metallic(parallelReflection, expo, albedo);
-
-    // Emissive rectangle
-    Object* er1 = new Object(new Rectangle(glm::vec3(-1.0f, 4.8f, -12.0f), glm::vec3(1.0f, 4.8f, -14.0f)), lsrc2);
     
     // Add spheres
-    // Sphere* s1 = new Sphere(glm::vec3(-0.0f, 3.5f, -12.0), 1.5f);
+    // Sphere* s1 = new Sphere(glm::vec3(-01.0,0.8,-1.0), 0.5f);
     // Object* o1 = new Object(s1, lsrc);
 
     // Sphere* s2 = new Sphere(glm::vec3(-0.8f, 0.0, -5.0), 1.0f);
@@ -57,13 +53,12 @@ int main() {
     // o7->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(100.0f), glm::vec3(0.0f, 1.0f, 0.0f))*glm::scale(glm::mat4(1.0f), glm::vec3(2.0f,1.0f,1.0f)));
 
     //Add planes
-    // Plane* p1 = new Plane(glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3(0.0, 0.0, 1.0));
+    // Plane* p1 = new Plane(glm::vec3(0, -1.0, 0), glm::vec3(0.0, 1.0, 0.0));
     // Object* p1_obj = new Object(p1, mat2);
-    // scene.objects.push_back(p1_obj);
 
-    PointLight pl1 = PointLight(glm::vec3(0.0, 4.5, -12.0f), glm::vec3(1.0f,1.0f,1.0f));
+    PointLight pl1 = PointLight(glm::vec3(0.0, 4.5, -13.0f), glm::vec3(1.0f,1.0f,1.0f));
     pl1.intensity*=50;
-    // scene.lights.push_back(pl1);
+    scene.lights.push_back(pl1);
 
     //Add boxes
     Object* bottom_wall = new Object(new Box(glm::vec3(-4.5f, -5.01f, -9.5f), glm::vec3(4.5f, -5.0f, -15.0f)), grey_mat);
@@ -76,7 +71,7 @@ int main() {
     b1->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
     // Sphere* s2 = new Sphere(glm::vec3(-0.8f, 0.0, -5.0), 1.0f);
-    Object* sp1 = new Object(new Sphere(glm::vec3(1.0f, -3.5, -13.0), 1.5f), white_mat);
+    Object* sp1 = new Object(new Sphere(glm::vec3(1.0f, -3.5, -11.0), 1.5f), white_mat);
 
     // Box* b2 = new Box(glm::vec3(0.5f, -0.25f, -2.5f), glm::vec3(0.8f, 0.25f, -2.0f));
     // Object* o5 = new Object(b2, red_mat);
@@ -86,8 +81,8 @@ int main() {
     // Object* o6 = new Object(b3, green_mat);
     // o6->setTransform(glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
-    scene.objects.push_back(er1);
     // scene.objects.push_back(o2);
+    // scene.objects.push_back(o1);
     // scene.objects.push_back(o3);
     // scene.objects.push_back(p1_obj);
     scene.objects.push_back(bottom_wall);
@@ -95,8 +90,7 @@ int main() {
     scene.objects.push_back(right_wall);
     scene.objects.push_back(top_wall);
     scene.objects.push_back(back_wall);
-    
-    // scene.objects.push_back(o1);
+
     scene.objects.push_back(b1);
     scene.objects.push_back(sp1);
     // scene.objects.push_back(b1);
@@ -104,8 +98,8 @@ int main() {
     // scene.objects.push_back(o6);
     // scene.objects.push_back(o7);
 
-    // scene.sky = glm::vec3(0.69,0.77,0.87);
-    scene.sky = glm::vec3(0.0,0.0,0.0);
+    scene.sky = glm::vec3(0.69,0.77,0.87);
+    // scene.sky = glm::vec3(0.0,0.0,0.0);
     scene.ambientLight = glm::vec3(1.0,1.0,1.0);
 
     for (int j = 0; j < h; j++) {
@@ -117,35 +111,13 @@ int main() {
 
             // trace the ray and get the colour
             // color c = glm::normalize(ray.d)*0.5f + 0.5f;;
-            color c = scene.tracePath(ray, 500, 5);
-            // color c = scene.getColor(ray);
+            // color c = scene.tracePath(ray, 100, 5);
+            color c = scene.getColor(ray);
             // std::cout<<x<<" "<<y<<" "<<to_string(c)<<std::endl;
             image.pixel(i, j) = c;
 
         }
     }
-
-    // Ray testRay = Ray(glm::vec3(0.0,0,0), glm::vec3(0.0f, 0.0f, -1.0f));
-    // std::cout<<to_string(testRay.at(-2.0/testRay.d.z))<<std::endl;
-    // HitRecord rec = HitRecord();
-    // Interval t_range = Interval(0.001f, std::numeric_limits<float>::max());
-    // for(auto const &obj:scene.objects)
-    // {
-    //     if(obj->hit(testRay, t_range, rec))
-    //     {
-    //         std::cout<<"Hit at: "<<glm::to_string(rec.p)<<std::endl;
-    //         std::cout<<"Normal: "<<glm::to_string(rec.n)<<std::endl;
-    //         // std::cout<<"Material: "<<rec.mat<<std::endl;
-    //         std::cout<<"get color "<<to_string(scene.getColor(testRay))<<std::endl;
-    //         std::cout<<"t: "<< rec.t <<std::endl;
-    //     }
-    //     else
-    //     {
-    //         std::cout<<"No hit"<<std::endl;
-    //     }
-    // }
-
-
     SDL_Surface *out = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
     tonemap(image, out, 1, 2.2f);
     std::string filename = "path_tracing.png";

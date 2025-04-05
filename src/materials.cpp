@@ -3,6 +3,7 @@
 //Material functions
 color Lambertian::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const
 {
+    // std::cout << "albedo: " << to_string(albedo) << std::endl;
     return (albedo/glm::pi<float>());
 }
 bool Lambertian::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
@@ -41,6 +42,7 @@ bool Metallic::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color
 }
 bool Emissive::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
 {
+    kr = glm::vec3(0.0f);
     return false;
 }
 color Emissive::emission(const HitRecord &rec, glm::vec3 v) const
@@ -142,4 +144,14 @@ color TorrenceSparrow::brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) cons
     if(cos_theta < 0.0f) return glm::vec3(0.0f);
     cos_theta = std::pow(cos_theta, 200.0);
     return (albedo * cos_theta) / glm::pi<float>();
+}
+
+color EmissiveRectangle::emission(const HitRecord &rec, glm::vec3 v) const
+{   
+    return emittedRadiance;
+}
+bool EmissiveRectangle::reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const
+{
+    kr = glm::vec3(0.0f);
+    return false;
 }

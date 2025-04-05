@@ -121,6 +121,9 @@ bool Box::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4
         // std::cout<<"tmin > tmax"<<std::endl;
         return false;
     }
+    if(tmin < 0 or !t_range.contains(tmin)) {
+        return false;
+    }
     rec.t = tmin;
     rec.p = ray.at(tmin);
     rec.n = glm::vec3(0.0);
@@ -134,6 +137,24 @@ bool Box::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4
         if(tminz==tmin) rec.n.z = -1;
         else rec.n.z = 1;
     }
+    if(glm::dot(rec.n, ray.d) > 0) rec.n = -rec.n;
     t_range.max = tmin;
+    return true;
+}
+
+bool Rectangle::hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const
+{
+    if(ray.d.y == 0) return false;
+    // std::cout << "Here" << std::endl;
+    float t = (low.y - ray.o.y) / ray.d.y;
+    glm::vec3 p = ray.at(t);
+    if(p.x < std::min(low.x, hi.x) || p.x > std::max(low.x, hi.x) || p.z < std::min(low.z, hi.z) || p.z > std::max(low.z, hi.z)) return false;
+    if(not t_range.contains(t)) {
+        return false;
+    }
+    rec.t = t;
+    rec.p = ray.at(t);
+    rec.n = glm::vec3(0.0f, -1.0f, 0.0f);
+    if(glm::dot(rec.n, ray.d) > 0) rec.n = -rec.n;
     return true;
 }

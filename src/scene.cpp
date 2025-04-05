@@ -3,15 +3,23 @@
 //Scene functions
 bool Scene::inShadow(glm::vec3 p, PointLight light) const
 {
-    Ray shadow_ray(p, light.location-p);
-    HitRecord rec;
-    Interval t_range = Interval(0.0f, std::numeric_limits<float>::max());
-    float bias = 0.001f, max_hit = 0.0f;
-    for(auto const &obj:objects)
+    Ray shadow_ray(p, normalize(light.location-p));
+    HitRecord rec = HitRecord();
+    float light_t = (glm::length(light.location - shadow_ray.o) / glm::length(shadow_ray.d));
+    Interval t_range = Interval(0.0f, light_t);
+    float bias = 0.001f, min_hit = light_t;
+    // for(auto const &obj:objects)
+    shadow_ray.o = shadow_ray.o + bias * shadow_ray.d;
+    for(int i = 0; i < objects.size(); ++i)
     {
-        if(obj->hit(shadow_ray, t_range, rec)) max_hit = std::max(max_hit, rec.t);
+        auto const&obj = objects[i];
+        if(obj->hit(shadow_ray, t_range, rec) and !obj->shape->isRectangle) {
+            min_hit = std::min(min_hit, std::max(rec.t, 2 * bias));
+            // if(rec.t < 0) std::cout << "negative min_hit: " << i << " " << std::endl;
+        }
     }
-    return (max_hit > bias) ? true : false;
+    // std::cout << "lt: " << light_t <<  " " << min_hit << std::endl;
+    return (min_hit > bias && min_hit < light_t) ? true : false;
 }
 
 glm::vec3 Scene::irradiance(HitRecord &rec, PointLight light) const
@@ -20,7 +28,10 @@ glm::vec3 Scene::irradiance(HitRecord &rec, PointLight light) const
     glm::vec3 l = light.location-rec.p;
     float cos_theta = glm::dot(rec.n, glm::normalize(l));
 
+    // std::cout << "normal: " << std::endl;
+
     if(cos_theta < 0) return glm::vec3(0.0);
+    // if(cos_theta < 0) cos_theta = -cos_theta;
     return (light.intensity * cos_theta) / r_square;
 }
 
@@ -31,13 +42,27 @@ color Scene::radiance(HitRecord &rec) const
     {
         if(!inShadow(rec.p, light))
         {
+            // std::cout << "not in shadow" << std::endl;
             glm::vec3 v = camera->getLocation()-rec.p;
             glm::vec3 l = light.location-rec.p;
             color brdf = rec.mat->brdf(rec, l, v);
+            // std::cout << to_string(brdf) << std::endl;
+            // auto ir = irradiance(rec, light);
             totalRadiance += irradiance(rec, light) * brdf;
+            // std::cout << "irradience: " <<  to_string(ir) << std::endl;
+        } else {
+            // std::cout << "outgoing" <<std::endl;
         }
     }
+    // std::cout << to_string(totalRadiance) << std::endl;
     return totalRadiance;
+}
+
+float random_float_01() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd()); // static: only initialized once
+    static std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    return dis(gen);
 }
 
 color Scene::radianceFromEmissive(HitRecord &rec) const
@@ -47,20 +72,45 @@ color Scene::radianceFromEmissive(HitRecord &rec) const
     {
         return totalRadiance;
     }
-    for(auto const &obj:objects)
-    {
-        if(obj->mat && obj->mat->emission(rec, camera->getLocation()-rec.p) != glm::vec3(0.0f))
-        {
-            //The object must be a sphere
-            // std::cout<<"source cum"<<std::endl;
-            Sphere *sp = dynamic_cast<Sphere*>(obj->shape);
-            if(!sp) std::cout<<"cooked"<<std::endl;
-            glm::vec3 ct = glm::normalize(sp->c-rec.p);
-            std::pair<HitRecord,int> hit = traceRay(Ray(rec.p,glm::normalize(sp->c-rec.p)));
-            if(hit.second) totalRadiance += hit.first.mat->emission(rec, sp->c-rec.p) * rec.mat->brdf(rec,sp->c - rec.p, camera->getLocation()-rec.p);
+    for(auto const &obj:objects) {
+        if(obj->shape->isRectangle) {
+            for(int i = 0; i < 5; i++) {
+                Rectangle *rect = static_cast<Rectangle*>(obj->shape);
+                glm::vec3 lo = rect->low, hi = rect->hi;
+                float sample_x = random_float_01() * (hi.x - lo.x) + lo.x;
+                float sample_z = random_float_01() * (hi.z - lo.z) + lo.z;
+                glm::vec3 sample_point = glm::vec3(sample_x, lo.y, sample_z);
+                if(not inShadow(rec.p + 0.001f * rec.n, PointLight(sample_point, glm::vec3(0.0f)))) {
+                    totalRadiance += obj->mat->emission(rec, camera->getLocation()-rec.p) * glm::dot(rec.n, glm::normalize(sample_point-rec.p));
+                    // std::cout << "sampled point: " << to_string(sample_point) << std::endl;
+                } else {
+                    // std::cout << "sampled point: " << to_string(sample_point) << std::endl;
+                }
+            }
         }
-    }
-    return totalRadiance;
+    }   
+
+    return (totalRadiance * rec.mat->albedo) / 500.0f;
+
+    // color totalRadiance = glm::vec3(0.0);
+    // if(rec.mat->emission(rec, camera->getLocation()-rec.p) != glm::vec3(0.0f))
+    // {
+    //     return totalRadiance;
+    // }
+    // for(auto const &obj:objects)
+    // {
+    //     if(obj->mat && obj->mat->emission(rec, camera->getLocation()-rec.p) != glm::vec3(0.0f))
+    //     {
+    //         //The object must be a sphere
+    //         // std::cout<<"source cum"<<std::endl;
+    //         Sphere *sp = dynamic_cast<Sphere*>(obj->shape);
+    //         if(!sp) std::cout<<"cooked"<<std::endl;
+    //         glm::vec3 ct = glm::normalize(sp->c-rec.p);
+    //         std::pair<HitRecord,int> hit = traceRay(Ray(rec.p,glm::normalize(sp->c-rec.p)));
+    //         if(hit.second) totalRadiance += hit.first.mat->emission(rec, sp->c-rec.p) * rec.mat->brdf(rec,sp->c - rec.p, camera->getLocation()-rec.p);
+    //     }
+    // }
+    // return totalRadiance;
 }
 color Scene::computeColor(Ray ray, int numberOfBounces) const
 {
@@ -82,17 +132,22 @@ color Scene::computeColor(Ray ray, int numberOfBounces) const
     //Get cos_theta_i
     float cos_theta_i = glm::dot(hit.first.n, sampledNormal);
     
-    if(probability(prob) && sampledNormal!=glm::vec3(0.0f))
+    if(probability(prob) && sampledNormal!=glm::vec3(0.0f) && pdfinverse > 1e-5)
     {
-        std::pair<HitRecord,int> hit2 = traceRay(Ray(point+0.001f*hit.first.n, sampledNormal));
+        std::pair<HitRecord,int> hit2 = traceRay(Ray(point+0.001f*sampledNormal, sampledNormal));
         if(hit2.second)
         {
-            Lr = computeColor(Ray(point+0.001f*hit.first.n, sampledNormal),numberOfBounces)*
+            Lr = computeColor(Ray(point+0.001f*sampledNormal, sampledNormal),numberOfBounces)*
                  cos_theta_i*pdfinverse*hit.first.mat->brdf(hit.first, sampledNormal, v)*
                 (1.0f/prob); 
         }
     }
-    return Le+Lr;
+    // std::cout << "brdf: " << to_string(hit.first.mat->brdf(hit.first, sampledNormal, v)) << std::endl;
+    if(kr != glm::vec3(0.0f))
+    {
+        Lr *= kr;
+    }
+    return Le + Lr;
 }
 
 color Scene::tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const
@@ -105,8 +160,9 @@ color Scene::tracePath(Ray ray, int numberOfSamples, int numberOfBounces) const
     color direct_light = glm::vec3(0.0f);
     std::pair<HitRecord,int> hit = traceRay(ray);
     if(hit.second) direct_light+= radiance(hit.first);
-    // if(hit.second) direct_light+= radianceFromEmissive(hit.first);
-    return c/(float)numberOfSamples + direct_light;
+    if(hit.second) direct_light+= radianceFromEmissive(hit.first);
+
+    return (c/(float)numberOfSamples + direct_light);
 }
 
 //Camera functions
@@ -175,9 +231,11 @@ color Scene::getColor(Ray ray, int depth) const
         glm::vec3 inherent = glm::vec3(1.0f)-kr;
         glm::vec3 reflected = kr;
         // std::cout<<to_string(reflectedColor)<<std::endl;
-        c = inherent * c + reflected * reflectedColor;
+        c = inherent * c + reflected * reflectedColor * rec.mat->brdf(rec, r, ray.o-rec.p);
+        // if(no_of_hits) std::cout<< "cum"<<std::endl;
     }
     // if(no_of_hits){std::cout<<"final allot "<<std::endl;
-    // std::cout<<to_string(c)<<std::endl;}
+    // if(no_of_hits) std::cout<<to_string(c)<<std::endl;
+    // else std::cout<<"sudai moment:" << to_string(c)<<std::endl;
     return c;
 }

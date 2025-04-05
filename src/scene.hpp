@@ -116,6 +116,7 @@ public:
 
 class Shape {
 public:
+    bool isRectangle = false;
     glm::vec3 center = glm::vec3(0.0f);
     virtual bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const = 0;
 };
@@ -146,9 +147,17 @@ public:
     bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const override;
 };
 
+class Rectangle: public Shape {
+public:
+    glm::vec3 low, hi;
+    Rectangle(glm::vec3 minpt, glm::vec3 maxpt): low(minpt), hi(maxpt) { center = hi+(low-hi)/2.0f; isRectangle=true; };
+    bool hit(Ray ray, Interval t_range, HitRecord &rec, glm::mat4 tf, glm::mat4 itf, glm::mat4 ntf) const override;
+};
+
 class Material {
 public:
     color ambientColor=glm::vec3(0.0f);
+    color albedo = glm::vec3(0.0f);
     virtual color emission(const HitRecord &rec, glm::vec3 v) const {
         return glm::vec3(0.0);
     }
@@ -159,10 +168,7 @@ public:
 
 class Lambertian: public Material {
 public:
-    color albedo;
-    Lambertian(color albedo):
-        albedo(albedo) {
-    }
+    Lambertian(color _albedo) { albedo = _albedo; }
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
     virtual bool reflection(const HitRecord &rec, glm::vec3 v,
                             glm::vec3 &r, color &kr) const;
@@ -172,9 +178,8 @@ class Metallic: public Material {
 public:
     color parallelReflection; //This is the F_0 value for schlick's approximation
     int shininess = 1;
-    color albedo; //specular reflection coefficient
-    Metallic(color parallelReflection, int blinnPhongExponent, color albedo):
-        parallelReflection(parallelReflection), shininess(blinnPhongExponent), albedo(albedo) {
+    Metallic(color parallelReflection, int blinnPhongExponent, color _albedo): parallelReflection(parallelReflection), shininess(blinnPhongExponent) {
+        albedo = _albedo;
     }
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const;
     virtual bool reflection(const HitRecord &rec, glm::vec3 v, glm::vec3 &r, color &kr) const;
@@ -200,7 +205,21 @@ public:
     }
     virtual color emission(const HitRecord &rec, glm::vec3 v) const;
     virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const {
-        return glm::vec3(0.0f);
+        return glm::vec3(1.0f);
+    }
+    virtual bool reflection(const HitRecord &rec, glm::vec3 v,
+                            glm::vec3 &r, color &kr) const;
+};
+
+class EmissiveRectangle: public Material {
+public:
+    color emittedRadiance=glm::vec3(0.0f);
+    EmissiveRectangle(color emittedRadiance):
+        emittedRadiance(emittedRadiance) {
+    }
+    virtual color emission(const HitRecord &rec, glm::vec3 v) const;
+    virtual color brdf(const HitRecord &rec, glm::vec3 l, glm::vec3 v) const {
+        return glm::vec3(1.0f);
     }
     virtual bool reflection(const HitRecord &rec, glm::vec3 v,
                             glm::vec3 &r, color &kr) const;
